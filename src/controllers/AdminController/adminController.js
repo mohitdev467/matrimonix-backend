@@ -86,6 +86,11 @@ const loginAdmin = async (req, res) => {
       success: true,
       message: "User login successfully",
       accessToken: accessToken,
+      user: {
+        name: adminData.name,
+        email: adminData.email,
+        role: adminData.role,
+      },
     });
   } catch (error) {
     return res.status(500).send({

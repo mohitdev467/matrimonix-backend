@@ -28,9 +28,9 @@ const createCaste = async (req, res) => {
 
 const getAllCastes = async (req, res) => {
   try {
-    const { search, page = 1, limit = 10 } = req.query;
+    const { search, page = 1, pageSize = 10 } = req.query;
     const pageNumber = parseInt(page);
-    const limitNumber = parseInt(limit);
+    const limitNumber = parseInt(pageSize);
     const skip = (pageNumber - 1) * limitNumber;
 
     const filter = search
@@ -59,7 +59,7 @@ const getAllCastes = async (req, res) => {
       pagination: {
         total: totalCount,
         page: pageNumber,
-        limit: limitNumber,
+        pageSize: limitNumber,
         totalPages: Math.ceil(totalCount / limitNumber),
       },
     });
