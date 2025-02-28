@@ -16,6 +16,7 @@ const {
 } = require("../../../middlewares/tokenVerification");
 
 const userController=require("../../../controllers/AdminController/userController")
+const categoryController=require("../../../controllers/CategoryController/categoryController")
 const adminRoute = express.Router();
 
 adminRoute.post("/create", createAdmin);
@@ -54,5 +55,13 @@ adminRoute.put('/users/status', userController.changeUserStatus);
 adminRoute.delete('/users/:userId', userController.deleteUser);
 adminRoute.get('/users/:userId', userController.getUserById);
 adminRoute.put('/update-user/:userId', userController.updateUser);
+
+
+// Category Routes
+adminRoute.get('/categories', categoryController.getCategories);
+adminRoute.get('/categories/:categoryId', categoryController.getCategoryById);
+adminRoute.post('/categories', categoryController.addCategory);
+adminRoute.put('/categories/:categoryId', categoryController.updateCategory);
+adminRoute.delete('/categories/:categoryId', categoryController.deleteCategory);
 
 module.exports = adminRoute;
