@@ -15,6 +15,7 @@ const {
   authorizeRole,
 } = require("../../../middlewares/tokenVerification");
 
+const userController=require("../../../controllers/AdminController/userController")
 const adminRoute = express.Router();
 
 adminRoute.post("/create", createAdmin);
@@ -45,5 +46,11 @@ adminRoute.patch(
   authorizeRole(["admin"]),
   toggleCasteStatus
 );
+
+// User Apis 
+adminRoute.get("/users",userController.getUsers);
+adminRoute.post("/add-user", userController.addUser);
+adminRoute.put('/users/status', userController.changeUserStatus);
+adminRoute.delete('/users/:userId', userController.deleteUser);
 
 module.exports = adminRoute;
