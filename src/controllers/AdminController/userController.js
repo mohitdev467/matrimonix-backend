@@ -4,14 +4,36 @@ const bcrypt = require('bcrypt');
 const mongoose = require('mongoose');
 
 module.exports.getUsers = async (req, res) => {
-    try {
-      const users = await UserSchema.find();
-      res.status(200).json(users);
-    } catch (error) {
-      res.status(400).json({ message: 'Error fetching users', error });
-    }
-  };
+  try {
+    const { page = 1, limit = 10, search = '' } = req.query;
 
+    const query = {
+      $or: [
+        { name: { $regex: search, $options: 'i' } },
+        { email: { $regex: search, $options: 'i' } },
+        { mobile: { $regex: search, $options: 'i' } }
+      ]
+    };
+
+    const users = await UserSchema.find(query)
+      .skip((page - 1) * limit)
+      .limit(parseInt(limit));
+
+    const total = await UserSchema.countDocuments(query);
+
+    res.status(200).json({
+      users,
+      total,
+      success: true,
+      page: parseInt(page),
+      limit: parseInt(limit),
+      totalPages: Math.ceil(total / limit),
+    });
+  } catch (error) {
+    res.status(400).json({success: false,
+      message: 'Error fetching users', error });
+  }
+};
 
   module.exports.addUser = [
     upload.single('user_avtar'),
