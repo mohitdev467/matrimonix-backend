@@ -63,5 +63,39 @@ module.exports.changeUserStatus = async (req, res) => {
     }
   };
 
+  module.exports.getUserById = async (req, res) => {
+    try {
+      const { userId } = req.params;
+      const user = await UserSchema.findById(userId);
+      if (!user) {
+        return res.status(404).json({ message: 'User not found' });
+      }
+      res.status(200).json(user);
+    } catch (error) {
+      res.status(400).json({ message: 'Error fetching user', error });
+    }
+  };
 
-  
+  module.exports.updateUser = [
+    upload.single('user_avtar'),
+    async (req, res) => {
+      try {
+        const { userId } = req.params;
+        const { password, ...userData } = req.body;
+        if (password) {
+          const salt = await bcrypt.genSalt(10);
+          userData.password = await bcrypt.hash(password, salt);
+        }
+        if (req.file) {
+          userData.user_avtar = req.file.path;
+        }
+        const user = await UserSchema.findByIdAndUpdate(userId, userData, { new: true });
+        if (!user) {
+          return res.status(404).json({ message: 'User not found' });
+        }
+        res.status(200).json({ message: 'User updated successfully', user });
+      } catch (error) {
+        res.status(400).json({ message: 'Error updating user', error });
+      }
+    }
+  ];

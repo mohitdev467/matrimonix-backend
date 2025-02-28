@@ -52,5 +52,7 @@ adminRoute.get("/users",userController.getUsers);
 adminRoute.post("/add-user", userController.addUser);
 adminRoute.put('/users/status', userController.changeUserStatus);
 adminRoute.delete('/users/:userId', userController.deleteUser);
+adminRoute.get('/users/:userId', userController.getUserById);
+adminRoute.put('/update-user/:userId', userController.updateUser);
 
 module.exports = adminRoute;
