@@ -1,8 +1,13 @@
 const jwt = require("jsonwebtoken");
 const Admin = require("../models/adminModel/Admin");
+const dotenv = require("../config/dotenv");
+
+dotenv();
 
 const accessTokenSecret = process.env.JWT_SECRET_KEY;
 const refreshTokenSecret = process.env.JWT_SECRET_KEY_REFRESH_TOKEN;
+
+console.log("rereshsss", refreshTokenSecret);
 
 const authMiddleware = async (req, res, next) => {
   const authHeader = req.headers["authorization"];
@@ -21,7 +26,8 @@ const authMiddleware = async (req, res, next) => {
     next();
   } catch (error) {
     if (error.name === "TokenExpiredError") {
-      const refreshToken = req.cookies.refreshToken;
+      console.log("Token Expired - Attempting Refresh");
+      const refreshToken = req.cookies?.refreshToken;
       if (!refreshToken)
         return res.status(403).json({ error: "Refresh token required" });
 
@@ -45,6 +51,7 @@ const authMiddleware = async (req, res, next) => {
         req.admin = decodedRefresh;
         next();
       } catch (refreshError) {
+        console.log("refresh erorrr", refreshError);
         return res.status(403).json({ error: "Invalid refresh token" });
       }
     } else {

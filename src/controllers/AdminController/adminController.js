@@ -43,6 +43,7 @@ const createAdmin = async (req, res) => {
     });
   } catch (error) {
     return res.status(500).send({
+      success: false,
       error: error,
       message: "Internal Server Error",
     });
@@ -73,7 +74,7 @@ const loginAdmin = async (req, res) => {
     const accessToken = await generateAccessToken(adminData);
     const refreshToken = await generateRefreshToken(adminData);
     adminData.refreshToken = refreshToken;
-    await adminData.save();
+    await adminData.save({ validateBeforeSave: false });
 
     res.cookie("refreshToken", refreshToken, {
       httpOnly: true,
@@ -82,11 +83,13 @@ const loginAdmin = async (req, res) => {
     });
 
     res.status(200).json({
+      success: true,
       message: "User login successfully",
       accessToken: accessToken,
     });
   } catch (error) {
     return res.status(500).send({
+      success: false,
       error: error,
       message: "Internal Server Error",
     });
