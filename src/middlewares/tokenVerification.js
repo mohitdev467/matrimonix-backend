@@ -26,7 +26,6 @@ const authMiddleware = async (req, res, next) => {
     next();
   } catch (error) {
     if (error.name === "TokenExpiredError") {
-      console.log("Token Expired - Attempting Refresh");
       const refreshToken = req.cookies?.refreshToken;
       if (!refreshToken)
         return res.status(403).json({ error: "Refresh token required" });
@@ -34,6 +33,10 @@ const authMiddleware = async (req, res, next) => {
       try {
         const decodedRefresh = jwt.verify(refreshToken, refreshTokenSecret);
         const admin = await Admin.findById(decodedRefresh.id);
+
+        if (!admin) {
+          return res.status(403).json({ error: "Invalid refresh token" });
+        }
 
         if (!admin || admin.refreshToken !== refreshToken) {
           return res.status(403).json({ error: "Invalid refresh token" });
@@ -43,9 +46,13 @@ const authMiddleware = async (req, res, next) => {
           { id: admin._id, email: admin.email },
           accessTokenSecret,
           {
-            expiresIn: "15m",
+            expiresIn: "12h",
           }
         );
+        if (!admin.refreshToken) {
+          admin.refreshToken = refreshToken;
+          await admin.save();
+        }
 
         res.setHeader("Authorization", `Bearer ${newAccessToken}`);
         req.admin = decodedRefresh;

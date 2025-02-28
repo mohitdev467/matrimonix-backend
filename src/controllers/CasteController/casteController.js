@@ -1,20 +1,16 @@
-const Joi = require("joi");
 const Caste = require("../../models/adminModel/Caste");
-
-const casteSchema = Joi.object({
-  caste: Joi.string().required(),
-  language: Joi.string().required(),
-});
 
 const createCaste = async (req, res) => {
   try {
-    const { error } = casteSchema.validate(req.body);
-    if (error)
-      return res
-        .status(400)
-        .json({ success: false, error: error.details[0].message });
-
     const { caste, language } = req.body;
+
+    const existingCaste = await Caste.findOne({ caste });
+    if (existingCaste) {
+      return res.status(400).json({
+        success: false,
+        message: "Caste already exists",
+      });
+    }
     const newCaste = new Caste({ caste, language, isActive: true });
     await newCaste.save();
 
@@ -24,32 +20,56 @@ const createCaste = async (req, res) => {
       caste: newCaste,
     });
   } catch (err) {
-    res.status(500).json({ success: false, error: "Internal Server Error" });
+    res
+      .status(500)
+      .json({ success: false, message: "Internal Server Error", error: err });
   }
 };
 
 const getAllCastes = async (req, res) => {
   try {
-    const castes = await Caste.find().select("caste language isActive");
+    const { search, page = 1, limit = 10 } = req.query;
+    const pageNumber = parseInt(page);
+    const limitNumber = parseInt(limit);
+    const skip = (pageNumber - 1) * limitNumber;
+
+    const filter = search
+      ? {
+          $or: [
+            { caste: { $regex: search.trim(), $options: "i" } },
+            { language: { $regex: search.trim(), $options: "i" } },
+          ],
+        }
+      : {};
+
+    const totalCount = await Caste.countDocuments(filter);
+
+    const castes = await Caste.find(filter)
+      .select("caste language isActive")
+      .limit(limitNumber)
+      .skip(skip);
     if (!castes?.length) {
       return res
         .status(404)
         .json({ success: false, message: "Caste not found" });
     }
-    res.status(200).json({ success: true, data: castes });
+    res.status(200).json({
+      success: true,
+      data: castes,
+      pagination: {
+        total: totalCount,
+        page: pageNumber,
+        limit: limitNumber,
+        totalPages: Math.ceil(totalCount / limitNumber),
+      },
+    });
   } catch (err) {
-    res.status(500).json({ error: "Internal Server Error" });
+    res.status(500).json({ error: "Internal Server Error", error: err });
   }
 };
 
 const updateCaste = async (req, res) => {
   try {
-    const { error } = casteSchema.validate(req.body);
-    if (error)
-      return res
-        .status(400)
-        .json({ success: false, error: error.details[0].message });
-
     const { caste, language } = req.body;
     const updatedCaste = await Caste.findByIdAndUpdate(
       req.params.id,
@@ -66,7 +86,9 @@ const updateCaste = async (req, res) => {
       caste: updatedCaste,
     });
   } catch (err) {
-    res.status(500).json({ success: false, error: "Internal Server Error" });
+    res
+      .status(500)
+      .json({ success: false, error: "Internal Server Error", error: err });
   }
 };
 
@@ -86,7 +108,9 @@ const toggleCasteStatus = async (req, res) => {
       } successfully`,
     });
   } catch (err) {
-    res.status(500).json({ success: false, error: "Internal Server Error" });
+    res
+      .status(500)
+      .json({ success: false, error: "Internal Server Error", error: err });
   }
 };
 
