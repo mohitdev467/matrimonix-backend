@@ -7,8 +7,6 @@ dotenv();
 const accessTokenSecret = process.env.JWT_SECRET_KEY;
 const refreshTokenSecret = process.env.JWT_SECRET_KEY_REFRESH_TOKEN;
 
-console.log("rereshsss", refreshTokenSecret);
-
 const authMiddleware = async (req, res, next) => {
   const authHeader = req.headers["authorization"];
 
@@ -26,6 +24,7 @@ const authMiddleware = async (req, res, next) => {
     next();
   } catch (error) {
     if (error.name === "TokenExpiredError") {
+      console.log("errorrrr", req.cookies);
       const refreshToken = req.cookies?.refreshToken;
       if (!refreshToken)
         return res.status(403).json({ error: "Refresh token required" });

@@ -78,10 +78,11 @@ const loginAdmin = async (req, res) => {
 
     res.cookie("refreshToken", refreshToken, {
       httpOnly: true,
-      secure: true,
       sameSite: "strict",
+      secure: process.env.NODE_ENV === "production",
+      path: "/",
+      maxAge: 7 * 24 * 60 * 60 * 1000,
     });
-
     res.status(200).json({
       success: true,
       message: "User login successfully",
