@@ -48,6 +48,12 @@ const {
   toggleLanguageStatus,
   deleteLanguage,
 } = require("../../../controllers/LanguageController/LanguageController");
+const {
+  createServiceProvider,
+  getServiceProviders,
+  updateServiceProvider,
+  deleteServiceProvider,
+} = require("../../../controllers/ServiceProviderController/ServiceProviderController");
 
 const adminRoute = express.Router();
 
@@ -244,5 +250,11 @@ adminRoute.delete(
   authorizeRole(["admin"]),
   deleteLanguage
 );
+
+// Service Providers routes
+adminRoute.post("/service-providers", createServiceProvider);
+adminRoute.get("/service-providers", getServiceProviders);
+adminRoute.put("/service-providers/:id", updateServiceProvider);
+adminRoute.delete("/service-providers/:id", deleteServiceProvider);
 
 module.exports = adminRoute;
