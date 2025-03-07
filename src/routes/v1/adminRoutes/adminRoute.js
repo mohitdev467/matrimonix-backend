@@ -31,6 +31,24 @@ const {
   toggleOccupationStatus,
   deleteOccupation,
 } = require("../../../controllers/OccupationController/OccupationController");
+const {
+  createIncome,
+  getAllIncomes,
+  toggleIncomeStatus,
+  updateIncome,
+  deleteIncome,
+} = require("../../../controllers/IncomeController/IncomeController");
+const upload = require("../../../helpers/imageUploadHelper");
+
+const uploadMiddleware = require("../../../helpers/imageUploadHelper");
+const {
+  createLanguage,
+  getAllLanguages,
+  updateLanguage,
+  toggleLanguageStatus,
+  deleteLanguage,
+} = require("../../../controllers/LanguageController/LanguageController");
+
 const adminRoute = express.Router();
 
 adminRoute.post("/create", createAdmin);
@@ -79,8 +97,20 @@ adminRoute.put("/update-user/:userId", userController.updateUser);
 
 adminRoute.get("/categories", categoryController.getCategories);
 adminRoute.get("/categories/:categoryId", categoryController.getCategoryById);
-adminRoute.post("/categories", categoryController.addCategory);
-adminRoute.put("/categories/:categoryId", categoryController.updateCategory);
+adminRoute.post(
+  "/categories",
+  uploadMiddleware.single("image"),
+  categoryController.addCategory
+);
+adminRoute.put(
+  "/categories/:categoryId",
+  uploadMiddleware.single("image"),
+  categoryController.updateCategory
+);
+adminRoute.patch(
+  "/categories/:categoryId/status",
+  categoryController.toggleCategoryStatus
+);
 adminRoute.delete("/categories/:categoryId", categoryController.deleteCategory);
 
 // Manglik Routes
@@ -147,6 +177,72 @@ adminRoute.delete(
   authMiddleware,
   authorizeRole(["admin"]),
   deleteOccupation
+);
+
+// INcome Route
+
+adminRoute.post(
+  "/income",
+  authMiddleware,
+  authorizeRole(["admin"]),
+  createIncome
+);
+adminRoute.get(
+  "/income",
+  authMiddleware,
+  authorizeRole(["admin"]),
+  getAllIncomes
+);
+adminRoute.put(
+  "/income/:id",
+  authMiddleware,
+  authorizeRole(["admin"]),
+  updateIncome
+);
+adminRoute.patch(
+  "/income/:id/status",
+  authMiddleware,
+  authorizeRole(["admin"]),
+  toggleIncomeStatus
+);
+adminRoute.delete(
+  "/income/:id",
+  authMiddleware,
+  authorizeRole(["admin"]),
+  deleteIncome
+);
+
+// Language Route
+
+adminRoute.post(
+  "/language",
+  authMiddleware,
+  authorizeRole(["admin"]),
+  createLanguage
+);
+adminRoute.get(
+  "/language",
+  authMiddleware,
+  authorizeRole(["admin"]),
+  getAllLanguages
+);
+adminRoute.put(
+  "/language/:id",
+  authMiddleware,
+  authorizeRole(["admin"]),
+  updateLanguage
+);
+adminRoute.patch(
+  "/language/:id/status",
+  authMiddleware,
+  authorizeRole(["admin"]),
+  toggleLanguageStatus
+);
+adminRoute.delete(
+  "/language/:id",
+  authMiddleware,
+  authorizeRole(["admin"]),
+  deleteLanguage
 );
 
 module.exports = adminRoute;
