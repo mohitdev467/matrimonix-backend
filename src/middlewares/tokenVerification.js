@@ -24,7 +24,7 @@ const authMiddleware = async (req, res, next) => {
     next();
   } catch (error) {
     if (error.name === "TokenExpiredError") {
-      console.log("errorrrr", req.cookies);
+      console.log("errorrrr", req);
       const refreshToken = req.cookies?.refreshToken;
       if (!refreshToken)
         return res.status(403).json({ error: "Refresh token required" });

@@ -114,9 +114,31 @@ const toggleCasteStatus = async (req, res) => {
   }
 };
 
+const deleteCaste = async (req, res) => {
+  try {
+    const deletedCaste = await Caste.findByIdAndDelete(req.params.id);
+
+    if (!deletedCaste) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Caste not found" });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "Caste deleted successfully",
+    });
+  } catch (err) {
+    res
+      .status(500)
+      .json({ success: false, message: "Internal Server Error", error: err });
+  }
+};
+
 module.exports = {
   createCaste,
   getAllCastes,
   updateCaste,
   toggleCasteStatus,
+  deleteCaste,
 };
