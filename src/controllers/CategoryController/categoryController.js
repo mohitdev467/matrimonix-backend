@@ -1,4 +1,3 @@
-const upload = require("../../helpers/imageUploadHelper");
 const Category = require("../../models/adminModel/CategorySchema");
 
 // Get all categories

@@ -54,6 +54,16 @@ const {
   updateServiceProvider,
   deleteServiceProvider,
 } = require("../../../controllers/ServiceProviderController/ServiceProviderController");
+const {
+  createPackages,
+  getPackages,
+  updatePackages,
+  deletePackages,
+  togglePackageStatus,
+} = require("../../../controllers/PackagesController/PackagesController");
+const {
+  getDashboardData,
+} = require("../../../controllers/CommonController/commonController");
 
 const adminRoute = express.Router();
 
@@ -93,31 +103,86 @@ adminRoute.delete(
 );
 
 // User Apis
-adminRoute.get("/users", userController.getUsers);
-adminRoute.post("/add-user", userController.addUser);
-adminRoute.put("/users/status", userController.changeUserStatus);
-adminRoute.delete("/users/:userId", userController.deleteUser);
-adminRoute.put("/update-user/:userId", userController.updateUser);
+adminRoute.get(
+  "/users",
+  authMiddleware,
+  authorizeRole(["admin"]),
+  userController.getUsers
+);
+adminRoute.post(
+  "/add-user",
+  authMiddleware,
+  authorizeRole(["admin"]),
+  userController.addUser
+);
+adminRoute.put(
+  "/users/status",
+  authMiddleware,
+  authorizeRole(["admin"]),
+  userController.changeUserStatus
+);
+adminRoute.delete(
+  "/users/:userId",
+  authMiddleware,
+  authorizeRole(["admin"]),
+  userController.deleteUser
+);
+adminRoute.put(
+  "/update-user/:userId",
+  authMiddleware,
+  authorizeRole(["admin"]),
+  userController.updateUser
+);
+
+// Common API
+
+adminRoute.get(
+  "/dashboard",
+  authMiddleware,
+  authorizeRole(["admin"]),
+  getDashboardData
+);
 
 // Category Apis
 
-adminRoute.get("/categories", categoryController.getCategories);
-adminRoute.get("/categories/:categoryId", categoryController.getCategoryById);
+adminRoute.get(
+  "/categories",
+  authMiddleware,
+  authorizeRole(["admin"]),
+  categoryController.getCategories
+);
+adminRoute.get(
+  "/categories/:categoryId",
+  authMiddleware,
+  authorizeRole(["admin"]),
+  categoryController.getCategoryById
+);
 adminRoute.post(
   "/categories",
+  authMiddleware,
+  authorizeRole(["admin"]),
   uploadMiddleware.single("image"),
   categoryController.addCategory
 );
 adminRoute.put(
   "/categories/:categoryId",
+  authMiddleware,
+  authorizeRole(["admin"]),
   uploadMiddleware.single("image"),
   categoryController.updateCategory
 );
 adminRoute.patch(
   "/categories/:categoryId/status",
+  authMiddleware,
+  authorizeRole(["admin"]),
   categoryController.toggleCategoryStatus
 );
-adminRoute.delete("/categories/:categoryId", categoryController.deleteCategory);
+adminRoute.delete(
+  "/categories/:categoryId",
+  authMiddleware,
+  authorizeRole(["admin"]),
+  categoryController.deleteCategory
+);
 
 // Manglik Routes
 
@@ -252,9 +317,63 @@ adminRoute.delete(
 );
 
 // Service Providers routes
-adminRoute.post("/service-providers", createServiceProvider);
-adminRoute.get("/service-providers", getServiceProviders);
-adminRoute.put("/service-providers/:id", updateServiceProvider);
-adminRoute.delete("/service-providers/:id", deleteServiceProvider);
+adminRoute.post(
+  "/service-providers",
+  authMiddleware,
+  authorizeRole(["admin"]),
+  authMiddleware,
+  authorizeRole(["admin"]),
+  createServiceProvider
+);
+adminRoute.get(
+  "/service-providers",
+  authMiddleware,
+  authorizeRole(["admin"]),
+  getServiceProviders
+);
+adminRoute.put(
+  "/service-providers/:id",
+  authMiddleware,
+  authorizeRole(["admin"]),
+  updateServiceProvider
+);
+adminRoute.delete(
+  "/service-providers/:id",
+  authMiddleware,
+  authorizeRole(["admin"]),
+  deleteServiceProvider
+);
+
+// Service Providers routes
+adminRoute.post(
+  "/packages",
+  authMiddleware,
+  authorizeRole(["admin"]),
+  createPackages
+);
+adminRoute.get(
+  "/packages",
+  authMiddleware,
+  authorizeRole(["admin"]),
+  getPackages
+);
+adminRoute.put(
+  "/packages/:id",
+  authMiddleware,
+  authorizeRole(["admin"]),
+  updatePackages
+);
+adminRoute.delete(
+  "/packages/:id",
+  authMiddleware,
+  authorizeRole(["admin"]),
+  deletePackages
+);
+adminRoute.patch(
+  "/packages/:id/status",
+  authMiddleware,
+  authorizeRole(["admin"]),
+  togglePackageStatus
+);
 
 module.exports = adminRoute;

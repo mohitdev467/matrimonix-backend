@@ -2,23 +2,12 @@ const ServiceProvider = require("../../models/adminModel/ServiceProvider");
 
 const createServiceProvider = async (req, res) => {
   try {
-    const { name, category, address, contact, pricing, serviceOffer } =
-      req.body;
+    const serviceProviderData = req.body;
 
-    if (
-      !name ||
-      !category ||
-      !address ||
-      !contact ||
-      !pricing ||
-      !serviceOffer
-    ) {
-      return res
-        .status(400)
-        .json({ success: false, error: "Please provide valid details" });
+    if (req.file) {
+      serviceProviderData.image = req.file.path;
     }
-
-    const newProvider = new ServiceProvider(req.body);
+    const newProvider = new ServiceProvider(serviceProviderData);
     await newProvider.save();
     res.status(201).json({
       success: true,
