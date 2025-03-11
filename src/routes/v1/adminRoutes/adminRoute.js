@@ -3,6 +3,8 @@ const express = require("express");
 const {
   createAdmin,
   loginAdmin,
+  updateAdminProfile,
+  getAdminDetails,
 } = require("../../../controllers/AdminController/adminController");
 const {
   createCaste,
@@ -78,6 +80,18 @@ const adminRoute = express.Router();
 
 adminRoute.post("/create", createAdmin);
 adminRoute.post("/login", loginAdmin);
+adminRoute.get(
+  "/admin-details",
+  authMiddleware,
+  authorizeRole(["admin"]),
+  getAdminDetails
+);
+adminRoute.post(
+  "/update/:adminId",
+  authMiddleware,
+  authorizeRole(["admin"]),
+  updateAdminProfile
+);
 
 // Caste Routes
 adminRoute.post(

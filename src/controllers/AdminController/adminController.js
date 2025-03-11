@@ -102,4 +102,78 @@ const loginAdmin = async (req, res) => {
   }
 };
 
-module.exports = { createAdmin, loginAdmin };
+const updateAdminProfile = async (req, res) => {
+  try {
+    const { adminId } = req.params;
+    const { name, email, password, avatar } = req.body;
+
+    const admin = await Admin.findById(adminId);
+    if (!admin) {
+      return res.status(404).json({
+        success: false,
+        message: "Admin not found",
+      });
+    }
+
+    if (email && email !== admin.email) {
+      const existingAdmin = await Admin.findOne({ email });
+      if (existingAdmin) {
+        return res.status(400).json({
+          success: false,
+          message: "Email is already in use",
+        });
+      }
+      admin.email = email;
+    }
+
+    if (name) admin.name = name;
+    if (avatar) admin.avatar = avatar;
+
+    if (password) {
+      const salt = await bcrypt.genSalt(10);
+      admin.password = await bcrypt.hash(password, salt);
+    }
+
+    await admin.save();
+
+    res.status(200).json({
+      success: true,
+      message: "Profile updated successfully",
+      user: {
+        name: admin.name,
+        email: admin.email,
+        avatar: admin.avatar,
+      },
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      error: error.message,
+      message: "Internal Server Error",
+    });
+  }
+};
+
+const getAdminDetails = async (req, res) => {
+  try {
+    const adminData = await Admin.find();
+    if (!adminData) {
+      return res.status(404).json({ message: "Data not found" });
+    }
+    res.status(200).json({
+      success: true,
+      data: adminData,
+    });
+  } catch (error) {
+    res
+      .status(400)
+      .json({ success: false, message: "Error fetching admin", error });
+  }
+};
+
+module.exports = {
+  createAdmin,
+  loginAdmin,
+  updateAdminProfile,
+  getAdminDetails,
+};
