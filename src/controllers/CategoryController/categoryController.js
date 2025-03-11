@@ -1,17 +1,44 @@
 const Category = require("../../models/adminModel/CategorySchema");
 
-// Get all categories
 module.exports.getCategories = async (req, res) => {
   try {
-    const categories = await Category.find();
+    const { search, page = 1, pageSize = 10 } = req.query;
+    const pageNumber = parseInt(page);
+    const limitNumber = parseInt(pageSize);
+    const skip = (pageNumber - 1) * limitNumber;
+
+    const filter = search
+      ? {
+          $or: [
+            { cat_name: { $regex: search.trim(), $options: "i" } },
+            { description: { $regex: search.trim(), $options: "i" } },
+          ],
+        }
+      : {};
+
+    const totalCount = await Category.countDocuments(filter);
+
+    const categories = await Category.find(filter)
+      .select("cat_name image description isActive")
+      .limit(limitNumber)
+      .skip(skip);
+    if (!categories?.length) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Category not found" });
+    }
     res.status(200).json({
       success: true,
       data: categories,
+      pagination: {
+        total: totalCount,
+        page: pageNumber,
+        pageSize: limitNumber,
+        totalPages: Math.ceil(totalCount / limitNumber),
+      },
     });
-  } catch (error) {
-    res
-      .status(400)
-      .json({ success: false, message: "Error fetching categories", error });
+  } catch (err) {
+    res.status(500).json({ error: "Internal Server Error", error: err });
   }
 };
 
@@ -37,10 +64,9 @@ module.exports.getCategoryById = async (req, res) => {
 module.exports.addCategory = async (req, res) => {
   try {
     const categoryData = req.body;
-    if (req.file) {
-      categoryData.image = req.file.path;
-    }
+
     const category = new Category(categoryData);
+
     await category.save();
     res.status(201).json({
       success: true,
@@ -59,9 +85,7 @@ module.exports.updateCategory = async (req, res) => {
   try {
     const { categoryId } = req.params;
     const categoryData = req.body;
-    if (req.file) {
-      categoryData.image = req.file.path;
-    }
+
     const category = await Category.findByIdAndUpdate(
       categoryId,
       categoryData,

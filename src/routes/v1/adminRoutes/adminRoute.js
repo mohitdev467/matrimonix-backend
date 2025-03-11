@@ -64,6 +64,15 @@ const {
 const {
   getDashboardData,
 } = require("../../../controllers/CommonController/commonController");
+const {
+  getNews,
+  getNewsById,
+  addNews,
+  updateNews,
+  toggleNewsStatus,
+  deleteNews,
+} = require("../../../controllers/NewsController/NewsController");
+const uploadImage = require("../../../controllers/ImageController/ImageController");
 
 const adminRoute = express.Router();
 
@@ -143,6 +152,8 @@ adminRoute.get(
   getDashboardData
 );
 
+adminRoute.post("/upload", uploadMiddleware.single("file"), uploadImage);
+
 // Category Apis
 
 adminRoute.get(
@@ -161,14 +172,12 @@ adminRoute.post(
   "/categories",
   authMiddleware,
   authorizeRole(["admin"]),
-  uploadMiddleware.single("image"),
   categoryController.addCategory
 );
 adminRoute.put(
   "/categories/:categoryId",
   authMiddleware,
   authorizeRole(["admin"]),
-  uploadMiddleware.single("image"),
   categoryController.updateCategory
 );
 adminRoute.patch(
@@ -321,8 +330,6 @@ adminRoute.post(
   "/service-providers",
   authMiddleware,
   authorizeRole(["admin"]),
-  authMiddleware,
-  authorizeRole(["admin"]),
   createServiceProvider
 );
 adminRoute.get(
@@ -374,6 +381,35 @@ adminRoute.patch(
   authMiddleware,
   authorizeRole(["admin"]),
   togglePackageStatus
+);
+
+// News APIS
+
+adminRoute.get("/news", authMiddleware, authorizeRole(["admin"]), getNews);
+adminRoute.get(
+  "/news/:newsId",
+  authMiddleware,
+  authorizeRole(["admin"]),
+  getNewsById
+);
+adminRoute.post("/news", authMiddleware, authorizeRole(["admin"]), addNews);
+adminRoute.put(
+  "/news/:newsId",
+  authMiddleware,
+  authorizeRole(["admin"]),
+  updateNews
+);
+adminRoute.patch(
+  "/news/:newsId/status",
+  authMiddleware,
+  authorizeRole(["admin"]),
+  toggleNewsStatus
+);
+adminRoute.delete(
+  "/news/:newsId",
+  authMiddleware,
+  authorizeRole(["admin"]),
+  deleteNews
 );
 
 module.exports = adminRoute;

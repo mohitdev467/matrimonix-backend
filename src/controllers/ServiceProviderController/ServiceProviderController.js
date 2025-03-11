@@ -3,10 +3,6 @@ const ServiceProvider = require("../../models/adminModel/ServiceProvider");
 const createServiceProvider = async (req, res) => {
   try {
     const serviceProviderData = req.body;
-
-    if (req.file) {
-      serviceProviderData.image = req.file.path;
-    }
     const newProvider = new ServiceProvider(serviceProviderData);
     await newProvider.save();
     res.status(201).json({

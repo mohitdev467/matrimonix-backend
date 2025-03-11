@@ -3,8 +3,8 @@ const Language = require("../../models/adminModel/Language");
 const createLanguage = async (req, res) => {
   try {
     const { language, languageCode } = req.body;
-
     const existingLanguage = await Language.findOne({ language });
+
     if (existingLanguage) {
       return res.status(400).json({
         success: false,

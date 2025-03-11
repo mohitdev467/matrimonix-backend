@@ -15,6 +15,7 @@ const serviceProviderSchema = new mongoose.Schema(
     serviceOffer: { type: String, required: true },
     image: { type: String, required: false },
     bannerImage: { type: String, required: false },
+    isActive: { type: Boolean, default: true },
   },
   { timestamps: true }
 );
