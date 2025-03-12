@@ -1,11 +1,16 @@
-const mongoose = require('mongoose');
+const mongoose = require("mongoose");
 const userSchema = new mongoose.Schema({
   name: { type: String, required: true },
   email: { type: String, required: true },
   country_code: { type: String, required: true },
   mobile: { type: String, required: true },
   otp: { type: String, required: true },
-  gender: { type: String, required: true, enum: ['1', '2'], comment: '1=male, 2=female' },
+  gender: {
+    type: String,
+    required: true,
+    enum: ["1", "2"],
+    comment: "1=male, 2=female",
+  },
   profile_for: { type: String, required: true },
   password: { type: String, required: true },
   area_of_interest: { type: String, required: true },
@@ -61,18 +66,34 @@ const userSchema = new mongoose.Schema({
   smoking: { type: String, required: true },
   language: { type: String, required: true },
   interests: { type: String, required: true },
-  working: { type: Number, required: true, default: 0, enum: [0, 1], comment: '1=yes, 0=no' },
+  working: {
+    type: Number,
+    required: true,
+    default: 0,
+    enum: [0, 1],
+    comment: "1=yes, 0=no",
+  },
   shortlisted: { type: Number, required: true, default: 0 },
-  status: { type: Number, required: true, default: 0, enum: [0, 1, 2], comment: '1=active, 0=inactive, 2=delete' },
+  status: {
+    type: Number,
+    required: true,
+    default: 0,
+    enum: [0, 1, 2],
+    comment: "1=active, 0=inactive, 2=delete",
+  },
   critical: { type: Number, required: true, default: 0 },
   device_type: { type: String, required: true },
   device_token: { type: String, required: true },
-  user_avtar: { type: String, required: true, comment: 'profile image' },
-  end_subscription_date: { type: String, required: true, comment: 'expiry date of subscription' },
-  reasons: { type: String, required: true, comment: 'delete account reasons' },
+  user_avtar: { type: String, required: true, comment: "profile image" },
+  end_subscription_date: {
+    type: String,
+    required: true,
+    comment: "expiry date of subscription",
+  },
+  reasons: { type: String, required: true, comment: "delete account reasons" },
   created_at: { type: String, required: true },
-  updated_at: { type: String, required: true }
+  updated_at: { type: String, required: true },
+  isActive: { type: String, required: false },
 });
 
-
-module.exports = mongoose.model('User', userSchema);
+module.exports = mongoose.model("User", userSchema);

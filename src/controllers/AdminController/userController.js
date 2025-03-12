@@ -1,7 +1,6 @@
 const upload = require("../../helpers/imageUploadHelper");
 const UserSchema = require("../../models/adminModel/UserSchema");
 const bcrypt = require("bcrypt");
-const mongoose = require("mongoose");
 
 module.exports.getUsers = async (req, res) => {
   try {
@@ -51,9 +50,13 @@ module.exports.addUser = [
         user_avtar: req.file ? req.file.path : "",
       });
       await user.save();
-      res.status(201).json({ message: "User added successfully", user });
+      res
+        .status(201)
+        .json({ success: true, message: "User added successfully", user });
     } catch (error) {
-      res.status(400).json({ message: "Error adding user", error });
+      res
+        .status(400)
+        .json({ success: false, message: "Error adding user", error });
     }
   },
 ];
@@ -70,9 +73,15 @@ module.exports.changeUserStatus = async (req, res) => {
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
-    res.status(200).json({ message: "User status updated successfully", user });
+    res.status(200).json({
+      success: true,
+      message: "User status updated successfully",
+      user,
+    });
   } catch (error) {
-    res.status(400).json({ message: "Error updating user status", error });
+    res
+      .status(400)
+      .json({ success: false, message: "Error updating user status", error });
   }
 };
 
@@ -84,9 +93,13 @@ module.exports.deleteUser = async (req, res) => {
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
-    res.status(200).json({ message: "User deleted successfully" });
+    res
+      .status(200)
+      .json({ success: true, message: "User deleted successfully" });
   } catch (error) {
-    res.status(400).json({ message: "Error deleting user", error });
+    res
+      .status(400)
+      .json({ success: false, message: "Error deleting user", error });
   }
 };
 
@@ -95,11 +108,15 @@ module.exports.getUserById = async (req, res) => {
     const { userId } = req.params;
     const user = await UserSchema.findById(userId);
     if (!user) {
-      return res.status(404).json({ message: "User not found" });
+      return res
+        .status(404)
+        .json({ success: false, message: "User not found" });
     }
-    res.status(200).json(user);
+    res.status(200).json({ success: true, data: user });
   } catch (error) {
-    res.status(400).json({ message: "Error fetching user", error });
+    res
+      .status(400)
+      .json({ success: false, message: "Error fetching user", error });
   }
 };
 
@@ -120,11 +137,17 @@ module.exports.updateUser = [
         new: true,
       });
       if (!user) {
-        return res.status(404).json({ message: "User not found" });
+        return res
+          .status(404)
+          .json({ success: false, message: "User not found" });
       }
-      res.status(200).json({ message: "User updated successfully", user });
+      res
+        .status(200)
+        .json({ success: true, message: "User updated successfully", user });
     } catch (error) {
-      res.status(400).json({ message: "Error updating user", error });
+      res
+        .status(400)
+        .json({ success: false, message: "Error updating user", error });
     }
   },
 ];

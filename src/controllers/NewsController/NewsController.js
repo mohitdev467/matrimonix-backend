@@ -56,12 +56,20 @@ module.exports.updateNews = async (req, res) => {
     const news = await NewsSchema.findByIdAndUpdate(newsId, newsData, {
       new: true,
     });
-    if (!category) {
-      return res.status(404).json({ message: "News not found" });
+    if (!news) {
+      return res
+        .status(404)
+        .json({ success: false, message: "News not found" });
     }
-    res.status(200).json({ message: "News updated successfully", news });
+    res.status(200).json({
+      success: true,
+      message: "News updated successfully",
+      data: news,
+    });
   } catch (error) {
-    res.status(400).json({ message: "Error updating news", error });
+    res
+      .status(400)
+      .json({ success: false, message: "Error updating news", error });
   }
 };
 
