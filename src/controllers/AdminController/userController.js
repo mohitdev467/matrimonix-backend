@@ -37,69 +37,73 @@ module.exports.getUsers = async (req, res) => {
   }
 };
 
-module.exports.addUser = [
-  upload.single("user_avtar"),
-  async (req, res) => {
-    try {
-      const { password, ...userData } = req.body;
-      const salt = await bcrypt.genSalt(10);
-      const hashedPassword = await bcrypt.hash(password, salt);
-      const user = new UserSchema({
-        ...userData,
-        password: hashedPassword,
-        user_avtar: req.file ? req.file.path : "",
-      });
-      await user.save();
-      res
-        .status(201)
-        .json({ success: true, message: "User added successfully", user });
-    } catch (error) {
-      res
-        .status(400)
-        .json({ success: false, message: "Error adding user", error });
-    }
-  },
-];
-
-// Change user status
-module.exports.changeUserStatus = async (req, res) => {
+module.exports.addUser = async (req, res) => {
   try {
-    const { userId, status } = req.body;
-    const user = await UserSchema.findByIdAndUpdate(
-      userId,
-      { status: status },
-      { new: true }
-    );
-    if (!user) {
-      return res.status(404).json({ message: "User not found" });
+    const { email } = req.body;
+    const existingUser = await UserSchema.findOne({ email });
+    if (existingUser) {
+      return res.status(400).json({
+        success: false,
+        message: "User already exists",
+      });
     }
-    res.status(200).json({
+    const newUser = new UserSchema(req.body);
+    await newUser.save();
+
+    res.status(201).json({
       success: true,
-      message: "User status updated successfully",
-      user,
+      message: "User created successfully",
+      data: newUser,
     });
-  } catch (error) {
+  } catch (err) {
     res
-      .status(400)
-      .json({ success: false, message: "Error updating user status", error });
+      .status(500)
+      .json({ success: false, message: "Internal Server Error", error: err });
   }
 };
 
-// Delete user
+// Change user status
+
 module.exports.deleteUser = async (req, res) => {
   try {
-    const { userId } = req.params;
-    const user = await UserSchema.findByIdAndDelete(userId);
-    if (!user) {
-      return res.status(404).json({ message: "User not found" });
+    const deletedUser = await UserSchema.findByIdAndDelete(req.params.id);
+
+    if (!deletedUser) {
+      return res
+        .status(404)
+        .json({ success: false, message: "User not found" });
     }
+
+    res.status(200).json({
+      success: true,
+      message: "User deleted successfully",
+    });
+  } catch (err) {
     res
-      .status(200)
-      .json({ success: true, message: "User deleted successfully" });
-  } catch (error) {
+      .status(500)
+      .json({ success: false, message: "Internal Server Error", error: err });
+  }
+};
+
+module.exports.changeUserStatus = async (req, res) => {
+  try {
+    const User = await UserSchema.findById(req.params.id);
+    if (!User)
+      return res.status(404).json({ success: false, error: "User not found" });
+
+    User.isActive = !User.isActive;
+    await User.save();
+
+    res.status(200).json({
+      success: true,
+      message: `User ${
+        Manglik.isActive ? "activated" : "deactivated"
+      } successfully`,
+    });
+  } catch (err) {
     res
-      .status(400)
-      .json({ success: false, message: "Error deleting user", error });
+      .status(500)
+      .json({ success: false, error: "Internal Server Error", error: err });
   }
 };
 
@@ -120,34 +124,25 @@ module.exports.getUserById = async (req, res) => {
   }
 };
 
-module.exports.updateUser = [
-  upload.single("user_avtar"),
-  async (req, res) => {
-    try {
-      const { userId } = req.params;
-      const { password, ...userData } = req.body;
-      if (password) {
-        const salt = await bcrypt.genSalt(10);
-        userData.password = await bcrypt.hash(password, salt);
-      }
-      if (req.file) {
-        userData.user_avtar = req.file.path;
-      }
-      const user = await UserSchema.findByIdAndUpdate(userId, userData, {
-        new: true,
-      });
-      if (!user) {
-        return res
-          .status(404)
-          .json({ success: false, message: "User not found" });
-      }
-      res
-        .status(200)
-        .json({ success: true, message: "User updated successfully", user });
-    } catch (error) {
-      res
-        .status(400)
-        .json({ success: false, message: "Error updating user", error });
-    }
-  },
-];
+module.exports.updateUser = async (req, res) => {
+  try {
+    const updatedUser = await UserSchema.findByIdAndUpdate(
+      req.params.id,
+      { ...req.body },
+      { new: true }
+    );
+
+    if (!updatedUser)
+      return res.status(404).json({ success: false, error: "User not found" });
+
+    res.status(200).json({
+      success: true,
+      message: "User updated successfully",
+      Manglik: updatedUser,
+    });
+  } catch (err) {
+    res
+      .status(500)
+      .json({ success: false, error: "Internal Server Error", error: err });
+  }
+};

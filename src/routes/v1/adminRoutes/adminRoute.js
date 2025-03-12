@@ -139,7 +139,7 @@ adminRoute.post(
   userController.addUser
 );
 adminRoute.put(
-  "/users/status",
+  "/users/:userId/status",
   authMiddleware,
   authorizeRole(["admin"]),
   userController.changeUserStatus
@@ -151,7 +151,7 @@ adminRoute.delete(
   userController.deleteUser
 );
 adminRoute.put(
-  "/update-user/:userId",
+  "/users/:userId",
   authMiddleware,
   authorizeRole(["admin"]),
   userController.updateUser
