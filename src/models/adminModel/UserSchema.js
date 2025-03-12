@@ -93,7 +93,7 @@ const userSchema = new mongoose.Schema({
   reasons: { type: String, required: true, comment: "delete account reasons" },
   created_at: { type: String, required: true },
   updated_at: { type: String, required: true },
-  isActive: { type: String, required: false },
+  isActive: { type: Boolean, required: false },
 });
 
 module.exports = mongoose.model("User", userSchema);

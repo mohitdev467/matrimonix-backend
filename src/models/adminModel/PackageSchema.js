@@ -11,7 +11,7 @@ const PackageSchema = new mongoose.Schema(
       enum: ["Monthly", "Quarterly", "Free", "Yearly"],
       required: true,
     },
-    isActive: { type: String, required: true },
+    isActive: { type: Boolean, default: true },
   },
   { timestamps: true }
 );
