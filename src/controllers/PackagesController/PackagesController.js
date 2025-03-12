@@ -50,18 +50,30 @@ const createPackages = async (req, res) => {
 
 const updatePackages = async (req, res) => {
   try {
-    const { id } = req.query;
-    const updatedPackage = await PackageSchema.findByIdAndUpdate(id, req.body, {
-      new: true,
-    });
+    const { id } = req.params;
+    console.log("idddd", id);
+    const packagesData = req.body;
+    console.log("pACKAGESS", packagesData);
+    const updatedPackage = await PackageSchema.findByIdAndUpdate(
+      id,
+      packagesData,
+      {
+        new: true,
+      }
+    );
 
+    console.log("Packagee", updatedPackage);
     if (!updatedPackage) {
       return res
         .status(404)
         .json({ success: false, message: "Package not found" });
     }
 
-    res.status(200).json({ success: true, data: updatedPackage });
+    res.status(200).json({
+      success: true,
+      message: "Packages updated successfully",
+      data: updatedPackage,
+    });
   } catch (error) {
     res.status(500).json({ success: false, message: "Internal Server Error" });
   }
