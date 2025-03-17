@@ -7,7 +7,7 @@ const {
 
 const createAdmin = async (req, res) => {
   try {
-    const { name, email, password } = req.body;
+    const { name, email, password, avatar } = req.body;
     const exisitingAdmin = await Admin.findOne({
       $or: [{ email }],
     });
@@ -17,6 +17,7 @@ const createAdmin = async (req, res) => {
         message: "Admin already exist",
       });
     }
+
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
 
@@ -25,6 +26,7 @@ const createAdmin = async (req, res) => {
       email: email,
       password: hashedPassword,
       role: "admin",
+      avatar: avatar,
     });
 
     await newData.save();
