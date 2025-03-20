@@ -62,7 +62,7 @@ module.exports.addUser = async (req, res) => {
     const accessToken = await generateAccessToken({
       id: newUser._id,
       email: newUser.email,
-      password: newUser.hashedPassword,
+      password: hashedPassword,
       role: "user",
     });
 
@@ -70,7 +70,7 @@ module.exports.addUser = async (req, res) => {
       success: true,
       message: "User created successfully",
       data: newUser,
-      accessToken,
+      accessToken: accessToken,
     });
   } catch (err) {
     res
