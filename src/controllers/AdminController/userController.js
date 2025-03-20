@@ -1,3 +1,4 @@
+const { generateAccessToken } = require("../../helpers/authHelpers");
 const upload = require("../../helpers/imageUploadHelper");
 const UserSchema = require("../../models/adminModel/UserSchema");
 const bcrypt = require("bcrypt");
@@ -39,7 +40,7 @@ module.exports.getUsers = async (req, res) => {
 
 module.exports.addUser = async (req, res) => {
   try {
-    const { email } = req.body;
+    const { email, password, confirmPassword } = req.body;
     const existingUser = await UserSchema.findOne({ email });
     if (existingUser) {
       return res.status(400).json({
@@ -47,7 +48,15 @@ module.exports.addUser = async (req, res) => {
         message: "User already exists",
       });
     }
-    const newUser = new UserSchema(req.body);
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(password, salt);
+    const hashedConfirmPassword = await bcrypt.hash(confirmPassword, salt);
+
+    const newUser = new UserSchema({
+      ...req.body,
+      password: hashedPassword,
+      confirmPassword: hashedConfirmPassword,
+    });
     await newUser.save();
 
     res.status(201).json({
@@ -144,5 +153,46 @@ module.exports.updateUser = async (req, res) => {
     res
       .status(500)
       .json({ success: false, error: "Internal Server Error", error: err });
+  }
+};
+
+module.exports.loginUser = async (req, res) => {
+  try {
+    const { email, password } = req.body;
+
+    const userData = await UserSchema.findOne({ email });
+    if (!userData) {
+      return res.status(404).json({
+        message: "User not found with the given credentials",
+        success: false,
+      });
+    }
+
+    const isPasswordMatch = await bcrypt.compare(password, userData.password);
+
+    if (!isPasswordMatch) {
+      return res.status(404).json({
+        message: "Password does not match",
+        success: false,
+      });
+    }
+
+    const accessToken = await generateAccessToken(userData);
+
+    res.status(200).json({
+      success: true,
+      message: "User login successfully",
+      accessToken: accessToken,
+      data: {
+        name: userData.name,
+        email: userData.email,
+      },
+    });
+  } catch (error) {
+    return res.status(500).send({
+      success: false,
+      error: error,
+      message: "Internal Server Error",
+    });
   }
 };

@@ -132,12 +132,7 @@ adminRoute.get(
   authorizeRole(["admin"]),
   userController.getUsers
 );
-adminRoute.post(
-  "/add-user",
-  authMiddleware,
-  authorizeRole(["admin"]),
-  userController.addUser
-);
+adminRoute.post("/add-user", userController.addUser);
 adminRoute.put(
   "/users/:userId/status",
   authMiddleware,
