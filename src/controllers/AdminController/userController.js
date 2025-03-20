@@ -59,10 +59,18 @@ module.exports.addUser = async (req, res) => {
     });
     await newUser.save();
 
+    const accessToken = await generateAccessToken({
+      id: newUser._id,
+      email: newUser.email,
+      password: newUser.hashedPassword,
+      role: "user",
+    });
+
     res.status(201).json({
       success: true,
       message: "User created successfully",
       data: newUser,
+      accessToken,
     });
   } catch (err) {
     res

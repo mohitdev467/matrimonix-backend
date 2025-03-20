@@ -7,9 +7,10 @@ const userSchema = new mongoose.Schema(
     mobile: { type: String, required: true },
     gender: {
       type: String,
-      required: true,
+      required: false,
     },
     profile_for: { type: String, required: false },
+    role: { type: String, required: false },
     password: { type: String, required: true },
     confirmPassword: { type: String, required: false },
     blood_group: { type: String, required: false },
