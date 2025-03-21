@@ -194,6 +194,7 @@ module.exports.loginUser = async (req, res) => {
       data: {
         name: userData.name,
         email: userData.email,
+        gender: userData.gender,
       },
     });
   } catch (error) {
