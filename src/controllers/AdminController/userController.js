@@ -40,7 +40,7 @@ module.exports.getUsers = async (req, res) => {
 
 module.exports.addUser = async (req, res) => {
   try {
-    const { email, password, confirmPassword } = req.body;
+    const { email, password = "123456", confirmPassword = "123456" } = req.body;
     const existingUser = await UserSchema.findOne({ email });
     if (existingUser) {
       return res.status(400).json({
@@ -126,8 +126,8 @@ module.exports.changeUserStatus = async (req, res) => {
 
 module.exports.getUserById = async (req, res) => {
   try {
-    const { userId } = req.params;
-    const user = await UserSchema.findById(userId);
+    const { id } = req.params;
+    const user = await UserSchema.findById({ _id: id });
     if (!user) {
       return res
         .status(404)
@@ -201,6 +201,28 @@ module.exports.loginUser = async (req, res) => {
       success: false,
       error: error,
       message: "Internal Server Error",
+    });
+  }
+};
+
+module.exports.getRecentUsers = async (req, res) => {
+  try {
+    const userEmail = req.query.email;
+
+    const recentUsers = await UserSchema.find({ email: { $ne: userEmail } })
+      .sort({ createdAt: -1 })
+      .limit(10);
+
+    res.status(200).json({
+      success: true,
+      message: "Recently joined users fetched successfully",
+      data: recentUsers,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Internal Server Error",
+      error: error.message,
     });
   }
 };

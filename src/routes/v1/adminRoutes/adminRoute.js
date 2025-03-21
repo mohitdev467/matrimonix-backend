@@ -126,13 +126,9 @@ adminRoute.delete(
 );
 
 // User Apis
-adminRoute.get(
-  "/users",
-  authMiddleware,
-  authorizeRole(["admin"]),
-  userController.getUsers
-);
+adminRoute.get("/users", authMiddleware, userController.getUsers);
 adminRoute.post("/add-user", userController.addUser);
+adminRoute.get("/users/:id", authMiddleware, userController.getUserById);
 adminRoute.put(
   "/users/:userId/status",
   authMiddleware,
