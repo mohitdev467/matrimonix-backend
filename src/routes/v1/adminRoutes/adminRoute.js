@@ -141,12 +141,7 @@ adminRoute.delete(
   authorizeRole(["admin"]),
   userController.deleteUser
 );
-adminRoute.put(
-  "/users/:userId",
-  authMiddleware,
-  authorizeRole(["admin"]),
-  userController.updateUser
-);
+adminRoute.put("/users/:userId", authMiddleware, userController.updateUser);
 
 // Common API
 

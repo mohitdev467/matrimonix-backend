@@ -191,11 +191,7 @@ module.exports.loginUser = async (req, res) => {
       success: true,
       message: "User login successfully",
       accessToken: accessToken,
-      data: {
-        name: userData.name,
-        email: userData.email,
-        gender: userData.gender,
-      },
+      data: userData,
     });
   } catch (error) {
     return res.status(500).send({
