@@ -10,8 +10,6 @@ const serviceProviderSchema = new mongoose.Schema(
     address: { type: String, required: true },
     pricing: { type: String, required: true },
     landmark: { type: String, required: true },
-    latitude: { type: String, required: false },
-    longitude: { type: String, required: false },
     serviceOffer: { type: String, required: true },
     image: { type: String, required: false },
     bannerImage: { type: String, required: false },

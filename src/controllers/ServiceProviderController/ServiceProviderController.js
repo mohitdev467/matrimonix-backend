@@ -16,13 +16,65 @@ const createServiceProvider = async (req, res) => {
 
 const getServiceProviders = async (req, res) => {
   try {
-    const providers = await ServiceProvider.find();
-    res.status(201).json({
+    const { search, page = 1, pageSize = 10 } = req.query;
+    const pageNumber = parseInt(page);
+    const limitNumber = parseInt(pageSize);
+    const skip = (pageNumber - 1) * limitNumber;
+
+    const filter = search
+      ? {
+          $or: [
+            { serviceProviderName: { $regex: search.trim(), $options: "i" } },
+            { category: { $regex: search.trim(), $options: "i" } },
+          ],
+        }
+      : {};
+
+    const totalCount = await ServiceProvider.countDocuments(filter);
+
+    const providers = await ServiceProvider.find(filter)
+      .select(
+        "serviceProviderName category about contact address pricing landmark serviceOffer image bannerImage language isActive"
+      )
+      .limit(limitNumber)
+      .skip(skip);
+    if (!providers?.length) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Service Provider not found" });
+    }
+    res.status(200).json({
       success: true,
       data: providers,
+      pagination: {
+        total: totalCount,
+        page: pageNumber,
+        pageSize: limitNumber,
+        totalPages: Math.ceil(totalCount / limitNumber),
+      },
+    });
+  } catch (err) {
+    res.status(500).json({ error: "Internal Server Error", error: err });
+  }
+};
+
+const getServiceProviderById = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const serviceProvider = await ServiceProvider.findById(id);
+    if (!serviceProvider) {
+      return res.status(404).json({ message: "Service Provider not found" });
+    }
+    res.status(200).json({
+      success: true,
+      data: serviceProvider,
     });
   } catch (error) {
-    res.status(500).json({ success: false, error: error.message });
+    res.status(400).json({
+      success: false,
+      message: "Error fetching service provider",
+      error,
+    });
   }
 };
 
@@ -70,4 +122,5 @@ module.exports = {
   getServiceProviders,
   updateServiceProvider,
   deleteServiceProvider,
+  getServiceProviderById,
 };

@@ -55,6 +55,7 @@ const {
   getServiceProviders,
   updateServiceProvider,
   deleteServiceProvider,
+  getServiceProviderById,
 } = require("../../../controllers/ServiceProviderController/ServiceProviderController");
 const {
   createPackages,
@@ -332,12 +333,13 @@ adminRoute.post(
   authorizeRole(["admin"]),
   createServiceProvider
 );
+adminRoute.get("/service-providers", authMiddleware, getServiceProviders);
 adminRoute.get(
-  "/service-providers",
+  "/service-providers/:id",
   authMiddleware,
-  authorizeRole(["admin"]),
-  getServiceProviders
+  getServiceProviderById
 );
+
 adminRoute.put(
   "/service-providers/:id",
   authMiddleware,
@@ -386,12 +388,7 @@ adminRoute.patch(
 // News APIS
 
 adminRoute.get("/news", authMiddleware, getNews);
-adminRoute.get(
-  "/news/:newsId",
-  authMiddleware,
-  authorizeRole(["admin"]),
-  getNewsById
-);
+adminRoute.get("/news/:newsId", authMiddleware, getNewsById);
 adminRoute.post("/news", authMiddleware, authorizeRole(["admin"]), addNews);
 adminRoute.put(
   "/news/:newsId",
