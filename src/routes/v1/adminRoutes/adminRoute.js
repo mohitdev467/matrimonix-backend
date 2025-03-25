@@ -385,7 +385,7 @@ adminRoute.patch(
 
 // News APIS
 
-adminRoute.get("/news", authMiddleware, authorizeRole(["admin"]), getNews);
+adminRoute.get("/news", authMiddleware, getNews);
 adminRoute.get(
   "/news/:newsId",
   authMiddleware,
