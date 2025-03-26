@@ -223,3 +223,29 @@ module.exports.getRecentUsers = async (req, res) => {
     });
   }
 };
+
+module.exports.getMatchesUsers = async (req, res) => {
+  try {
+    const { id } = req.query;
+
+    if (!id) return res.status(400).json({ message: "User ID is required" });
+
+    const loggedInUser = await UserSchema.findById({ _id: id });
+    if (!loggedInUser)
+      return UserSchema.status(404).json({ message: "User not found" });
+
+    const oppositeGender = loggedInUser.gender === "male" ? "female" : "male";
+
+    const matchedUsers = await UserSchema.find({
+      gender: oppositeGender,
+      interests: { $in: loggedInUser.interests },
+      hobbies: { $in: loggedInUser.hobbies },
+      gotra: { $ne: loggedInUser.gotra },
+    }).select("-password");
+
+    res.status(200).json(matchedUsers);
+  } catch (error) {
+    console.error("Error fetching matches:", error);
+    res.status(500).json({ message: "Server Error" });
+  }
+};

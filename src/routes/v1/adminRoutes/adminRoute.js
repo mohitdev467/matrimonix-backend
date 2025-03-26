@@ -128,6 +128,7 @@ adminRoute.delete(
 
 // User Apis
 adminRoute.get("/users", authMiddleware, userController.getUsers);
+adminRoute.get("/matched/user", authMiddleware, userController.getMatchesUsers);
 adminRoute.post("/add-user", userController.addUser);
 adminRoute.get("/users/:id", authMiddleware, userController.getUserById);
 adminRoute.put(
