@@ -15,6 +15,7 @@ const userSchema = new mongoose.Schema(
     caste: { type: String, required: false, default: null },
     weight: { type: String, required: false, default: null },
     about_me: { type: String, required: false, default: null },
+    body_type: { type: String, required: false, default: null },
     height: { type: String, required: false, default: null },
     education: { type: String, required: false, default: null },
     occupation: { type: String, required: false, default: null },

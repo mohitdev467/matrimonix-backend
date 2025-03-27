@@ -128,7 +128,11 @@ adminRoute.delete(
 
 // User Apis
 adminRoute.get("/users", authMiddleware, userController.getUsers);
-adminRoute.get("/matched/user", authMiddleware, userController.getMatchesUsers);
+adminRoute.get(
+  "/matched/user/:userId",
+  authMiddleware,
+  userController.getMatchesUsers
+);
 adminRoute.post("/add-user", userController.addUser);
 adminRoute.get("/users/:userId", authMiddleware, userController.getUserById);
 adminRoute.put(
@@ -146,6 +150,16 @@ adminRoute.get(
   authMiddleware,
   authorizeRole(["admin"]),
   getDashboardData
+);
+adminRoute.post(
+  "/shortlisted",
+  authMiddleware,
+  userController.handleShortlistUser
+);
+adminRoute.get(
+  "/shortlisted/:id",
+  authMiddleware,
+  userController.getShortlistedUsers
 );
 
 adminRoute.post("/upload", uploadMiddleware.single("file"), uploadImage);

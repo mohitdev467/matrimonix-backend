@@ -1,5 +1,7 @@
+const { default: mongoose } = require("mongoose");
 const { generateAccessToken } = require("../../helpers/authHelpers");
 const upload = require("../../helpers/imageUploadHelper");
+const Shortlist = require("../../models/adminModel/Shortlist");
 const UserSchema = require("../../models/adminModel/UserSchema");
 const bcrypt = require("bcrypt");
 
@@ -226,26 +228,130 @@ module.exports.getRecentUsers = async (req, res) => {
 
 module.exports.getMatchesUsers = async (req, res) => {
   try {
-    const { id } = req.query;
+    const { userId } = req.params;
 
-    if (!id) return res.status(400).json({ message: "User ID is required" });
+    if (!userId)
+      return res
+        .status(400)
+        .json({ success: false, message: "User ID is required" });
 
-    const loggedInUser = await UserSchema.findById({ _id: id });
+    const loggedInUser = await UserSchema.findById({ _id: userId });
     if (!loggedInUser)
-      return UserSchema.status(404).json({ message: "User not found" });
+      return res
+        .status(404)
+        .json({ success: false, message: "User not found" });
 
     const oppositeGender = loggedInUser.gender === "male" ? "female" : "male";
 
-    const matchedUsers = await UserSchema.find({
+    // Fetch potential matches
+    const potentialMatches = await UserSchema.find({
       gender: oppositeGender,
-      interests: { $in: loggedInUser.interests },
-      hobbies: { $in: loggedInUser.hobbies },
       gotra: { $ne: loggedInUser.gotra },
     }).select("-password");
 
-    res.status(200).json(matchedUsers);
+    const matchedUsers = potentialMatches.map((user) => {
+      let matchScore = 0;
+      let totalCriteria = 2;
+
+      const commonHobbies = user.hobbies.filter((hobby) =>
+        loggedInUser.hobbies.includes(hobby)
+      );
+      if (commonHobbies?.length > 0) matchScore++;
+
+      if (user.family_type === loggedInUser.family_type) matchScore++;
+
+      const matchPercentage = Math.round((matchScore / totalCriteria) * 100);
+
+      return {
+        ...user.toObject(),
+        matchPercentage,
+      };
+    });
+
+    // Sort users by match percentage (highest first)
+    matchedUsers.sort((a, b) => b.matchPercentage - a.matchPercentage);
+
+    res.status(200).json({ success: true, data: matchedUsers });
   } catch (error) {
     console.error("Error fetching matches:", error);
-    res.status(500).json({ message: "Server Error" });
+    res.status(500).json({ success: false, message: "Server Error" });
+  }
+};
+
+module.exports.handleShortlistUser = async (req, res) => {
+  try {
+    const { userId, addedBy } = req.body;
+
+    const existingShortlist = await Shortlist.findOne({ userId, addedBy });
+
+    if (existingShortlist) {
+      await Shortlist.deleteOne({ userId, addedBy });
+
+      return res.status(200).json({
+        success: true,
+        isShortlist: false,
+        message: "User removed from shortlist",
+      });
+    }
+
+    const newShortlist = new Shortlist({ userId, addedBy });
+    await newShortlist.save();
+
+    return res.status(201).json({
+      success: true,
+      isShortlist: true,
+      message: "User shortlisted successfully",
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: "Server Error",
+      error,
+    });
+  }
+};
+
+module.exports.getShortlistedUsers = async (req, res) => {
+  try {
+    const loggedInUserId = req.params.id;
+
+    if (!loggedInUserId) {
+      return res
+        .status(400)
+        .json({ success: false, message: "User ID is required" });
+    }
+
+    const shortlistedProfiles = await Shortlist.aggregate([
+      {
+        $match: { addedBy: new mongoose.Types.ObjectId(loggedInUserId) },
+      },
+      {
+        $lookup: {
+          from: "users",
+          localField: "userId",
+          foreignField: "_id",
+          as: "userDetails",
+        },
+      },
+      { $unwind: "$userDetails" },
+      {
+        $project: {
+          _id: 1,
+          "userDetails.name": 1,
+          "userDetails.email": 1,
+          "userDetails.phone_no": 1,
+          "userDetails.occupation": 1,
+          "userDetails.image": 1,
+          userId: 1,
+          addedBy: 1,
+          createdAt: 1,
+        },
+      },
+    ]);
+
+    res.status(200).json({ success: true, data: shortlistedProfiles });
+  } catch (error) {
+    console.error("Error fetching shortlisted users:", error);
+    res.status(500).json({ success: false, message: "Server Error", error });
   }
 };
