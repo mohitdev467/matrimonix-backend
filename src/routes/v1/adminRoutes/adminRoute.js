@@ -130,19 +130,13 @@ adminRoute.delete(
 adminRoute.get("/users", authMiddleware, userController.getUsers);
 adminRoute.get("/matched/user", authMiddleware, userController.getMatchesUsers);
 adminRoute.post("/add-user", userController.addUser);
-adminRoute.get("/users/:id", authMiddleware, userController.getUserById);
+adminRoute.get("/users/:userId", authMiddleware, userController.getUserById);
 adminRoute.put(
   "/users/:userId/status",
   authMiddleware,
-  authorizeRole(["admin"]),
   userController.changeUserStatus
 );
-adminRoute.delete(
-  "/users/:userId",
-  authMiddleware,
-  authorizeRole(["admin"]),
-  userController.deleteUser
-);
+adminRoute.delete("/users/:userId", authMiddleware, userController.deleteUser);
 adminRoute.put("/users/:userId", authMiddleware, userController.updateUser);
 
 // Common API

@@ -83,7 +83,7 @@ module.exports.addUser = async (req, res) => {
 
 module.exports.deleteUser = async (req, res) => {
   try {
-    const deletedUser = await UserSchema.findByIdAndDelete(req.params.id);
+    const deletedUser = await UserSchema.findByIdAndDelete(req.params.userId);
 
     if (!deletedUser) {
       return res
@@ -114,7 +114,7 @@ module.exports.changeUserStatus = async (req, res) => {
     res.status(200).json({
       success: true,
       message: `User ${
-        Manglik.isActive ? "activated" : "deactivated"
+        User.isActive ? "activated" : "deactivated"
       } successfully`,
     });
   } catch (err) {
@@ -126,8 +126,8 @@ module.exports.changeUserStatus = async (req, res) => {
 
 module.exports.getUserById = async (req, res) => {
   try {
-    const { id } = req.params;
-    const user = await UserSchema.findById({ _id: id });
+    const { userId } = req.params;
+    const user = await UserSchema.findById({ _id: userId });
     if (!user) {
       return res
         .status(404)
@@ -144,7 +144,7 @@ module.exports.getUserById = async (req, res) => {
 module.exports.updateUser = async (req, res) => {
   try {
     const updatedUser = await UserSchema.findByIdAndUpdate(
-      req.params.id,
+      { _id: req.params.userId },
       { ...req.body },
       { new: true }
     );
@@ -155,7 +155,7 @@ module.exports.updateUser = async (req, res) => {
     res.status(200).json({
       success: true,
       message: "User updated successfully",
-      Manglik: updatedUser,
+      data: updatedUser,
     });
   } catch (err) {
     res
