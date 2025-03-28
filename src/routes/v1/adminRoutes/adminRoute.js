@@ -66,6 +66,7 @@ const {
 } = require("../../../controllers/PackagesController/PackagesController");
 const {
   getDashboardData,
+  getUserStats,
 } = require("../../../controllers/CommonController/commonController");
 const {
   getNews,
@@ -142,7 +143,6 @@ adminRoute.put(
 );
 adminRoute.delete("/users/:userId", authMiddleware, userController.deleteUser);
 adminRoute.put("/users/:userId", authMiddleware, userController.updateUser);
-
 // Common API
 
 adminRoute.get(
@@ -151,6 +151,8 @@ adminRoute.get(
   authorizeRole(["admin"]),
   getDashboardData
 );
+adminRoute.get("/stats-data/:userId", authMiddleware, getUserStats);
+
 adminRoute.post(
   "/shortlisted",
   authMiddleware,

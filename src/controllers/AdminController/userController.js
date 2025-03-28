@@ -225,42 +225,73 @@ module.exports.getRecentUsers = async (req, res) => {
     });
   }
 };
-
 module.exports.getMatchesUsers = async (req, res) => {
   try {
     const { userId } = req.params;
 
-    if (!userId)
+    if (!userId || !mongoose.Types.ObjectId.isValid(userId)) {
       return res
         .status(400)
-        .json({ success: false, message: "User ID is required" });
+        .json({ success: false, message: "Valid User ID is required" });
+    }
 
-    const loggedInUser = await UserSchema.findById({ _id: userId });
-    if (!loggedInUser)
+    const loggedInUser = await UserSchema.findById(userId);
+    if (!loggedInUser) {
       return res
         .status(404)
         .json({ success: false, message: "User not found" });
+    }
 
+    // Determine opposite gender
     const oppositeGender = loggedInUser.gender === "male" ? "female" : "male";
 
-    // Fetch potential matches
+    // Fetch potential matches based on gender and gotra
     const potentialMatches = await UserSchema.find({
       gender: oppositeGender,
-      gotra: { $ne: loggedInUser.gotra },
-    }).select("-password");
+      gotra: { $ne: loggedInUser.gotra }, // Exclude same gotra matches
+    }).select("-password -confirmPassword"); // Exclude sensitive fields
 
+    // Calculate match percentage based on multiple criteria
     const matchedUsers = potentialMatches.map((user) => {
       let matchScore = 0;
-      let totalCriteria = 2;
+      let totalCriteria = 0;
 
-      const commonHobbies = user.hobbies.filter((hobby) =>
-        loggedInUser.hobbies.includes(hobby)
-      );
-      if (commonHobbies?.length > 0) matchScore++;
+      // Ensure hobbies are arrays
+      const userHobbies = Array.isArray(user.hobbies) ? user.hobbies : [];
+      const loggedInUserHobbies = Array.isArray(loggedInUser.hobbies)
+        ? loggedInUser.hobbies
+        : [];
 
-      if (user.family_type === loggedInUser.family_type) matchScore++;
+      // 1. Common hobbies
+      if (loggedInUserHobbies.length > 0 && userHobbies.length > 0) {
+        totalCriteria++;
+        const commonHobbies = userHobbies.filter((hobby) =>
+          loggedInUserHobbies.includes(hobby)
+        );
+        if (commonHobbies.length > 0) matchScore++;
+      }
 
-      const matchPercentage = Math.round((matchScore / totalCriteria) * 100);
+      // 2. Family type
+      if (loggedInUser.family_type && user.family_type) {
+        totalCriteria++;
+        if (loggedInUser.family_type === user.family_type) matchScore++;
+      }
+
+      // 3. City match (optional preference)
+      if (loggedInUser.city && user.city) {
+        totalCriteria++;
+        if (loggedInUser.city === user.city) matchScore++;
+      }
+
+      // 4. Occupation match (optional preference)
+      if (loggedInUser.occupation && user.occupation) {
+        totalCriteria++;
+        if (loggedInUser.occupation === user.occupation) matchScore++;
+      }
+
+      // Calculate match percentage
+      const matchPercentage =
+        totalCriteria > 0 ? Math.round((matchScore / totalCriteria) * 100) : 0;
 
       return {
         ...user.toObject(),
@@ -277,7 +308,6 @@ module.exports.getMatchesUsers = async (req, res) => {
     res.status(500).json({ success: false, message: "Server Error" });
   }
 };
-
 module.exports.handleShortlistUser = async (req, res) => {
   try {
     const { userId, addedBy } = req.body;

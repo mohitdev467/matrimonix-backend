@@ -1,6 +1,9 @@
+const { default: mongoose } = require("mongoose");
 const Language = require("../../models/adminModel/Language");
 const PackageSchema = require("../../models/adminModel/PackageSchema");
 const UserSchema = require("../../models/adminModel/UserSchema");
+const Shortlist = require("../../models/adminModel/Shortlist");
+const ServiceProvider = require("../../models/adminModel/ServiceProvider");
 
 const getDashboardData = async (req, res) => {
   try {
@@ -62,4 +65,38 @@ const getDashboardData = async (req, res) => {
   }
 };
 
-module.exports = { getDashboardData };
+const getUserStats = async (req, res) => {
+  try {
+    const { userId } = req.params;
+
+    console.log("useriddd", userId);
+
+    if (!userId || !mongoose.Types.ObjectId.isValid(userId)) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Valid User ID is required" });
+    }
+
+    const shortlistedCount = await Shortlist.countDocuments({
+      addedBy: userId,
+    });
+
+    const serviceProvidersCount = await ServiceProvider.countDocuments();
+
+    const profileViewCount = 0;
+
+    res.status(200).json({
+      success: true,
+      data: {
+        shortlistedCount,
+        serviceProvidersCount,
+        profileViewCount,
+      },
+    });
+  } catch (error) {
+    console.error("Error fetching user statistics:", error);
+    res.status(500).json({ success: false, message: "Server Error" });
+  }
+};
+
+module.exports = { getDashboardData, getUserStats };
