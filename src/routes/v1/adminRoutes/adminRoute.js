@@ -77,6 +77,9 @@ const {
   deleteNews,
 } = require("../../../controllers/NewsController/NewsController");
 const uploadImage = require("../../../controllers/ImageController/ImageController");
+const {
+  sendMessage,
+} = require("../../../controllers/MessageController/MessageController");
 
 const adminRoute = express.Router();
 
