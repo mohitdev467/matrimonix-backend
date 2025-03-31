@@ -4,6 +4,7 @@ const upload = require("../../helpers/imageUploadHelper");
 const Shortlist = require("../../models/adminModel/Shortlist");
 const UserSchema = require("../../models/adminModel/UserSchema");
 const bcrypt = require("bcrypt");
+const crypto = require("crypto");
 
 module.exports.getUsers = async (req, res) => {
   try {
@@ -282,6 +283,11 @@ module.exports.getMatchesUsers = async (req, res) => {
         totalCriteria++;
         if (loggedInUser.city === user.city) matchScore++;
       }
+      // 3. state match (optional preference)
+      if (loggedInUser.state && user.state) {
+        totalCriteria++;
+        if (loggedInUser.state === user.state) matchScore++;
+      }
 
       // 4. Occupation match (optional preference)
       if (loggedInUser.occupation && user.occupation) {
@@ -382,6 +388,67 @@ module.exports.getShortlistedUsers = async (req, res) => {
     res.status(200).json({ success: true, data: shortlistedProfiles });
   } catch (error) {
     console.error("Error fetching shortlisted users:", error);
+    res.status(500).json({ success: false, message: "Server Error", error });
+  }
+};
+
+module.exports.requestPasswordReset = async (req, res) => {
+  try {
+    const { email } = req.body;
+    const user = await UserSchema.findOne({ email });
+
+    if (!user) {
+      return res
+        .status(404)
+        .json({ success: false, message: "User not found" });
+    }
+
+    const resetToken = crypto.randomBytes(32).toString("hex");
+    user.resetPasswordToken = resetToken;
+    user.resetPasswordExpires = Date.now() + 3600000;
+    await user.save();
+
+    res.status(200).json({
+      success: true,
+      message: "Password reset token generated successfully",
+      resetToken: resetToken,
+    });
+  } catch (error) {
+    console.log(error);
+    res
+      .status(500)
+      .json({ success: false, message: "Internal Server Error", error });
+  }
+};
+
+module.exports.resetPassword = async (req, res) => {
+  try {
+    const { token } = req.params;
+    const { password } = req.body;
+
+    const user = await UserSchema.findOne({
+      resetPasswordToken: token,
+      resetPasswordExpires: { $gt: Date.now() },
+    });
+
+    if (!user) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Invalid or expired token" });
+    }
+
+    const salt = await bcrypt.genSalt(10);
+    user.password = await bcrypt.hash(password, salt);
+    user.resetPasswordToken = undefined;
+    user.resetPasswordExpires = undefined;
+    await user.save();
+
+    res.status(200).json({
+      success: true,
+      message: "Password has been reset successfully",
+      data: user,
+    });
+  } catch (error) {
     res.status(500).json({ success: false, message: "Server Error", error });
   }
 };

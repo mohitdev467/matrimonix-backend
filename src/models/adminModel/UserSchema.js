@@ -1,10 +1,10 @@
 const mongoose = require("mongoose");
 const userSchema = new mongoose.Schema(
   {
-    name: { type: String, required: true },
+    name: { type: String, required: false },
     email: { type: String, required: true },
-    country_code: { type: String, required: true },
-    phone_no: { type: String, required: true },
+    country_code: { type: String, required: false },
+    phone_no: { type: String, required: false },
     gender: {
       type: String,
       required: false,
@@ -54,6 +54,8 @@ const userSchema = new mongoose.Schema(
     smoking: { type: String, required: false, default: null },
     languages: { type: String, required: false, default: null },
     image: { type: String, required: false, default: null },
+    resetPasswordToken: { type: String, required: false },
+    resetPasswordExpires: { type: String, required: false },
     end_subscription_date: {
       type: String,
       required: false,

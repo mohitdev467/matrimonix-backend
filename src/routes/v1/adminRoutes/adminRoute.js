@@ -143,6 +143,9 @@ adminRoute.put(
 );
 adminRoute.delete("/users/:userId", authMiddleware, userController.deleteUser);
 adminRoute.put("/users/:userId", authMiddleware, userController.updateUser);
+
+adminRoute.post("/request-password-reset", userController.requestPasswordReset);
+adminRoute.post("/reset-password/:token", userController.resetPassword);
 // Common API
 
 adminRoute.get(
