@@ -69,8 +69,6 @@ const getUserStats = async (req, res) => {
   try {
     const { userId } = req.params;
 
-    console.log("useriddd", userId);
-
     if (!userId || !mongoose.Types.ObjectId.isValid(userId)) {
       return res
         .status(400)

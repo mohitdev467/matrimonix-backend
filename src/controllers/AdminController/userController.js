@@ -243,7 +243,6 @@ module.exports.getMatchesUsers = async (req, res) => {
         .json({ success: false, message: "User not found" });
     }
 
-    // Determine opposite gender
     const oppositeGender = loggedInUser.gender === "male" ? "female" : "male";
 
     // Fetch potential matches based on gender and gotra
