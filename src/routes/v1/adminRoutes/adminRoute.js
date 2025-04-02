@@ -67,6 +67,7 @@ const {
 const {
   getDashboardData,
   getUserStats,
+  getEntities,
 } = require("../../../controllers/CommonController/commonController");
 const {
   getNews,
@@ -77,9 +78,6 @@ const {
   deleteNews,
 } = require("../../../controllers/NewsController/NewsController");
 const uploadImage = require("../../../controllers/ImageController/ImageController");
-const {
-  sendMessage,
-} = require("../../../controllers/MessageController/MessageController");
 
 const adminRoute = express.Router();
 
@@ -158,6 +156,7 @@ adminRoute.get(
   getDashboardData
 );
 adminRoute.get("/stats-data/:userId", authMiddleware, getUserStats);
+adminRoute.get("/entities", authMiddleware, getEntities);
 
 adminRoute.post(
   "/shortlisted",
@@ -377,12 +376,7 @@ adminRoute.post(
   authorizeRole(["admin"]),
   createPackages
 );
-adminRoute.get(
-  "/packages",
-  authMiddleware,
-  authorizeRole(["admin"]),
-  getPackages
-);
+adminRoute.get("/packages", authMiddleware, getPackages);
 adminRoute.put(
   "/packages/:id",
   authMiddleware,

@@ -5,9 +5,9 @@ const {
 } = require("../../../controllers/AdminController/userController");
 const { authMiddleware } = require("../../../middlewares/tokenVerification");
 const {
-  sendMessage,
-  getMessages,
-  getConversations,
+  getAllConversations,
+  getAllMessages,
+  sendMessages,
 } = require("../../../controllers/MessageController/MessageController");
 
 const userRoute = express.Router();
@@ -15,8 +15,10 @@ const userRoute = express.Router();
 userRoute.post("/login", loginUser);
 userRoute.get("/recent-users", authMiddleware, getRecentUsers);
 // chatss
-userRoute.post("/send/:id", authMiddleware, sendMessage);
-userRoute.post("/messages/:id", authMiddleware, getMessages);
-userRoute.get("/conversations/:userId", authMiddleware, getConversations);
+
+userRoute.get("/conversations/:userId", getAllConversations);
+userRoute.post("/conversations", getAllConversations);
+userRoute.get("/messages/:conversationId", getAllMessages);
+userRoute.post("/messages", sendMessages);
 
 module.exports = userRoute;

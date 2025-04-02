@@ -4,6 +4,10 @@ const PackageSchema = require("../../models/adminModel/PackageSchema");
 const UserSchema = require("../../models/adminModel/UserSchema");
 const Shortlist = require("../../models/adminModel/Shortlist");
 const ServiceProvider = require("../../models/adminModel/ServiceProvider");
+const Income = require("../../models/adminModel/Income");
+const Occupation = require("../../models/adminModel/Occupation");
+const Manglik = require("../../models/adminModel/Manglik");
+const Caste = require("../../models/adminModel/Caste");
 
 const getDashboardData = async (req, res) => {
   try {
@@ -97,4 +101,21 @@ const getUserStats = async (req, res) => {
   }
 };
 
-module.exports = { getDashboardData, getUserStats };
+const getEntities = async (req, res) => {
+  try {
+    let data = {
+      income: await Income.find(),
+      language: await Language.find(),
+      occupation: await Occupation.find(),
+      manglik: await Manglik.find(),
+      caste: await Caste.find(),
+    };
+
+    res.status(200).json({ success: true, data: data });
+  } catch (error) {
+    console.error("Error fetching data:", error);
+    res.status(500).json({ success: false, error: "Internal Server Error" });
+  }
+};
+
+module.exports = { getDashboardData, getUserStats, getEntities };
