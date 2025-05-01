@@ -226,75 +226,82 @@ module.exports.getRecentUsers = async (req, res) => {
     });
   }
 };
+
 module.exports.getMatchesUsers = async (req, res) => {
   try {
     const { userId } = req.params;
 
     if (!userId || !mongoose.Types.ObjectId.isValid(userId)) {
-      return res
-        .status(400)
-        .json({ success: false, message: "Valid User ID is required" });
+      return res.status(400).json({
+        success: false,
+        message: "Valid User ID is required",
+      });
     }
 
     const loggedInUser = await UserSchema.findById(userId);
     if (!loggedInUser) {
-      return res
-        .status(404)
-        .json({ success: false, message: "User not found" });
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
     }
 
-    const oppositeGender = loggedInUser.gender === "male" ? "female" : "male";
+    const gender = loggedInUser.gender?.toLowerCase();
+    const oppositeGender = gender === "male" ? "female" : "male";
 
-    // Fetch potential matches based on gender and gotra
+    const parseArray = (str) =>
+      str && typeof str === "string"
+        ? str.split(",").map((s) => s.trim().toLowerCase())
+        : [];
+
+    const userHobbies = parseArray(loggedInUser.hobbies);
+    const userInterests = parseArray(loggedInUser.interests);
+    const userCity = loggedInUser.city?.toLowerCase().trim();
+    const userState = loggedInUser.state?.toLowerCase().trim();
+
     const potentialMatches = await UserSchema.find({
       gender: oppositeGender,
-      gotra: { $ne: loggedInUser.gotra }, // Exclude same gotra matches
-    }).select("-password -confirmPassword"); // Exclude sensitive fields
+      isActive: true,
+      _id: { $ne: loggedInUser._id },
+    }).select("-password -confirmPassword");
 
-    // Calculate match percentage based on multiple criteria
     const matchedUsers = potentialMatches.map((user) => {
       let matchScore = 0;
       let totalCriteria = 0;
 
-      // Ensure hobbies are arrays
-      const userHobbies = Array.isArray(user.hobbies) ? user.hobbies : [];
-      const loggedInUserHobbies = Array.isArray(loggedInUser.hobbies)
-        ? loggedInUser.hobbies
-        : [];
+      const matchArray = (arr1, arr2) =>
+        arr1.filter((item) => arr2.includes(item)).length > 0;
 
-      // 1. Common hobbies
-      if (loggedInUserHobbies.length > 0 && userHobbies.length > 0) {
+      const checkMatch = (a, b) =>
+        a && b && a.toLowerCase() === b.toLowerCase();
+
+      const hobbies = parseArray(user.hobbies);
+      const interests = parseArray(user.interests);
+
+      // Hobbies
+      if (userHobbies.length && hobbies.length) {
         totalCriteria++;
-        const commonHobbies = userHobbies.filter((hobby) =>
-          loggedInUserHobbies.includes(hobby)
-        );
-        if (commonHobbies.length > 0) matchScore++;
+        if (matchArray(userHobbies, hobbies)) matchScore++;
       }
 
-      // 2. Family type
-      if (loggedInUser.family_type && user.family_type) {
+      // Interests
+      if (userInterests.length && interests.length) {
         totalCriteria++;
-        if (loggedInUser.family_type === user.family_type) matchScore++;
+        if (matchArray(userInterests, interests)) matchScore++;
       }
 
-      // 3. City match (optional preference)
-      if (loggedInUser.city && user.city) {
+      // City
+      if (userCity && user.city) {
         totalCriteria++;
-        if (loggedInUser.city === user.city) matchScore++;
-      }
-      // 3. state match (optional preference)
-      if (loggedInUser.state && user.state) {
-        totalCriteria++;
-        if (loggedInUser.state === user.state) matchScore++;
+        if (checkMatch(userCity, user.city)) matchScore++;
       }
 
-      // 4. Occupation match (optional preference)
-      if (loggedInUser.occupation && user.occupation) {
+      // State
+      if (userState && user.state) {
         totalCriteria++;
-        if (loggedInUser.occupation === user.occupation) matchScore++;
+        if (checkMatch(userState, user.state)) matchScore++;
       }
 
-      // Calculate match percentage
       const matchPercentage =
         totalCriteria > 0 ? Math.round((matchScore / totalCriteria) * 100) : 0;
 
@@ -304,15 +311,18 @@ module.exports.getMatchesUsers = async (req, res) => {
       };
     });
 
-    // Sort users by match percentage (highest first)
     matchedUsers.sort((a, b) => b.matchPercentage - a.matchPercentage);
 
     res.status(200).json({ success: true, data: matchedUsers });
   } catch (error) {
-    console.error("Error fetching matches:", error);
-    res.status(500).json({ success: false, message: "Server Error" });
+    console.error("Error in getMatchesUsers:", error);
+    res.status(500).json({
+      success: false,
+      message: "Server error",
+    });
   }
 };
+
 module.exports.handleShortlistUser = async (req, res) => {
   try {
     const { userId, addedBy } = req.body;
