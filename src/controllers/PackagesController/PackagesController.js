@@ -26,13 +26,21 @@ const getPackages = async (req, res) => {
 
 const createPackages = async (req, res) => {
   try {
-    const { title, description, price, language, subscriptionType } = req.body;
+    const {
+      title,
+      description,
+      price,
+      monthly_pay,
+      language,
+      subscriptionType,
+    } = req.body;
 
     const newPackage = new PackageSchema({
       title,
       description,
       price,
       language,
+      monthly_pay,
       subscriptionType,
       isActive: true,
     });
@@ -51,9 +59,7 @@ const createPackages = async (req, res) => {
 const updatePackages = async (req, res) => {
   try {
     const { id } = req.params;
-    console.log("idddd", id);
     const packagesData = req.body;
-    console.log("pACKAGESS", packagesData);
     const updatedPackage = await PackageSchema.findByIdAndUpdate(
       id,
       packagesData,
