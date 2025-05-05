@@ -4,7 +4,7 @@ const userSchema = new mongoose.Schema(
     name: { type: String, required: false },
     email: { type: String, required: true },
     country_code: { type: String, required: false },
-    phone_no: { type: String, required: false },
+    mobile: { type: String, required: false },
     gender: {
       type: String,
       required: false,
@@ -17,7 +17,7 @@ const userSchema = new mongoose.Schema(
     about_me: { type: String, required: false, default: null },
     body_type: { type: String, required: false, default: null },
     height: { type: String, required: false, default: null },
-    education: { type: String, required: false, default: null },
+    qualification: { type: String, required: false, default: null },
     occupation: { type: String, required: false, default: null },
     income: { type: String, required: false, default: null },
     organisation_name: { type: String, required: false, default: null },

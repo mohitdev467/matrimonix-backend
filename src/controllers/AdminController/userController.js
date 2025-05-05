@@ -259,13 +259,13 @@ module.exports.getMatchesUsers = async (req, res) => {
     const userCity = loggedInUser.city?.toLowerCase().trim();
     const userState = loggedInUser.state?.toLowerCase().trim();
 
-    const potentialMatches = await UserSchema.find({
+    const oppositeGenderUsers = await UserSchema.find({
       gender: oppositeGender,
       isActive: true,
       _id: { $ne: loggedInUser._id },
     }).select("-password -confirmPassword");
 
-    const matchedUsers = potentialMatches.map((user) => {
+    const matchedUsers = oppositeGenderUsers.map((user) => {
       let matchScore = 0;
       let totalCriteria = 0;
 
@@ -278,25 +278,21 @@ module.exports.getMatchesUsers = async (req, res) => {
       const hobbies = parseArray(user.hobbies);
       const interests = parseArray(user.interests);
 
-      // Hobbies
       if (userHobbies.length && hobbies.length) {
         totalCriteria++;
         if (matchArray(userHobbies, hobbies)) matchScore++;
       }
 
-      // Interests
       if (userInterests.length && interests.length) {
         totalCriteria++;
         if (matchArray(userInterests, interests)) matchScore++;
       }
 
-      // City
       if (userCity && user.city) {
         totalCriteria++;
         if (checkMatch(userCity, user.city)) matchScore++;
       }
 
-      // State
       if (userState && user.state) {
         totalCriteria++;
         if (checkMatch(userState, user.state)) matchScore++;
