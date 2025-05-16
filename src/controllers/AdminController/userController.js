@@ -249,67 +249,16 @@ module.exports.getMatchesUsers = async (req, res) => {
     const gender = loggedInUser.gender?.toLowerCase();
     const oppositeGender = gender === "male" ? "female" : "male";
 
-    const parseArray = (str) =>
-      str && typeof str === "string"
-        ? str.split(",").map((s) => s.trim().toLowerCase())
-        : [];
-
-    const userHobbies = parseArray(loggedInUser.hobbies);
-    const userInterests = parseArray(loggedInUser.interests);
-    const userCity = loggedInUser.city?.toLowerCase().trim();
-    const userState = loggedInUser.state?.toLowerCase().trim();
-
     const oppositeGenderUsers = await UserSchema.find({
       gender: oppositeGender,
       isActive: true,
       _id: { $ne: loggedInUser._id },
     }).select("-password -confirmPassword");
 
-    const matchedUsers = oppositeGenderUsers.map((user) => {
-      let matchScore = 0;
-      let totalCriteria = 0;
-
-      const matchArray = (arr1, arr2) =>
-        arr1.filter((item) => arr2.includes(item)).length > 0;
-
-      const checkMatch = (a, b) =>
-        a && b && a.toLowerCase() === b.toLowerCase();
-
-      const hobbies = parseArray(user.hobbies);
-      const interests = parseArray(user.interests);
-
-      if (userHobbies.length && hobbies.length) {
-        totalCriteria++;
-        if (matchArray(userHobbies, hobbies)) matchScore++;
-      }
-
-      if (userInterests.length && interests.length) {
-        totalCriteria++;
-        if (matchArray(userInterests, interests)) matchScore++;
-      }
-
-      if (userCity && user.city) {
-        totalCriteria++;
-        if (checkMatch(userCity, user.city)) matchScore++;
-      }
-
-      if (userState && user.state) {
-        totalCriteria++;
-        if (checkMatch(userState, user.state)) matchScore++;
-      }
-
-      const matchPercentage =
-        totalCriteria > 0 ? Math.round((matchScore / totalCriteria) * 100) : 0;
-
-      return {
-        ...user.toObject(),
-        matchPercentage,
-      };
+    res.status(200).json({
+      success: true,
+      data: oppositeGenderUsers,
     });
-
-    matchedUsers.sort((a, b) => b.matchPercentage - a.matchPercentage);
-
-    res.status(200).json({ success: true, data: matchedUsers });
   } catch (error) {
     console.error("Error in getMatchesUsers:", error);
     res.status(500).json({
@@ -318,6 +267,7 @@ module.exports.getMatchesUsers = async (req, res) => {
     });
   }
 };
+
 
 module.exports.handleShortlistUser = async (req, res) => {
   try {
