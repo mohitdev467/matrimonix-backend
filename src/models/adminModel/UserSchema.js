@@ -23,6 +23,7 @@ const userSchema = new mongoose.Schema(
     organisation_name: { type: String, required: false, default: null },
     city: { type: String, required: false, default: null },
     state: { type: String, required: false, default: null },
+    country: { type: String, required: false, default: null },
     district: { type: String, required: false, default: null },
     current_address: { type: String, required: false, default: null },
     pinCode: { type: String, required: false, default: null },
