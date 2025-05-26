@@ -3,14 +3,18 @@ const PaymentHistory = require("../../models/adminModel/PaymentHistory.js");
 const { generateRandomId } = require("../../utils/commonUtils.js");
 const UserSchema = require("../../models/adminModel/UserSchema.js");
 const PackageSchema = require("../../models/adminModel/PackageSchema.js");
+const dotenv = require("../../config/dotenv.js");
+
+
+dotenv();
+
 
 
 const baseUrl = process.env.CASHFREE_BASE_URL;
-// const baseUrl = "https://api.cashfree.com/pg/orders"
+const app_id =process.env.CASHFREE_API_KEY
+const secrect_key = process.env.CASHFREE_SECRET_KEY
 
-const app_id = process.env.CASHFREE_API_KEY;
-const secrect_key = process.env.CASHFREE_SECRET_KEY;
-
+console.log("result-------", baseUrl, app_id, secrect_key)
 
 // Create new payment order
 exports.createNewOrder = async (req, res) => {
@@ -25,6 +29,7 @@ exports.createNewOrder = async (req, res) => {
     customer_id,
   } = req.body;
 
+  
   try {
     const customerDetails = {
       customer_id:
@@ -46,8 +51,8 @@ exports.createNewOrder = async (req, res) => {
           notify_url: "https://webhook.site/ec276d81-5a64-4639-9dd6-2bfc777ea19b",
           payment_methods: "cc,dc,upi",
         },
-        order_amount: parseInt(amount) || 1,
-        // order_amount:1,
+        // order_amount: parseInt(amount) || 1,
+        order_amount:1,
         order_id: orderId,
         order_currency: "INR",
         order_note: "This is my first Order",
@@ -62,7 +67,6 @@ exports.createNewOrder = async (req, res) => {
         },
       }
     );
-
 
     await PaymentHistory.create({
       userId: customer_id || null,
