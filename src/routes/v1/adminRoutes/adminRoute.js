@@ -79,6 +79,7 @@ const {
 } = require("../../../controllers/NewsController/NewsController");
 const uploadImage = require("../../../controllers/ImageController/ImageController");
 const { getAllPaymentHistory, deletePaymentHistory } = require("../../../controllers/PaymentController/PaymentController");
+const { createTestimonial, getAllTestimonials, getTestimonialById, updateTestimonial, deleteTestimonial } = require("../../../controllers/TestimonialController/TestimonialController");
 
 const adminRoute = express.Router();
 
@@ -139,7 +140,7 @@ adminRoute.get(
 adminRoute.post("/add-user", userController.addUser);
 adminRoute.post("/add/bulk-user", userController.bulkAddUsers);
 
-adminRoute.get("/users/:userId", authMiddleware, userController.getUserById);
+adminRoute.get("/users/:userId",  userController.getUserById);
 adminRoute.put(
   "/users/:userId/status",
   authMiddleware,
@@ -433,6 +434,15 @@ adminRoute.delete(
   deletePaymentHistory
 );
 
+
+// Testimonials
+
+
+adminRoute.post('/testimonials', createTestimonial);
+adminRoute.get('/testimonials', getAllTestimonials);
+adminRoute.get('/testimonials/:id', getTestimonialById);
+adminRoute.put('/testimonials/:id',authMiddleware,authorizeRole(["admin"]), updateTestimonial);
+adminRoute.delete('/testimonials/:id', authMiddleware,authorizeRole(["admin"]),deleteTestimonial);
 
 
 

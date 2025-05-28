@@ -10,7 +10,7 @@ const generateAccessToken = (admin) => {
     },
     process.env.JWT_SECRET_KEY,
     {
-      expiresIn: "12h",
+      expiresIn: "30d",
     }
   );
 };

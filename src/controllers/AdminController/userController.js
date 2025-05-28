@@ -238,12 +238,25 @@ module.exports.updateUser = async (req, res) => {
 
 module.exports.loginUser = async (req, res) => {
   try {
-    const { email, password } = req.body;
+    const { country_code, mobile, password } = req.body;
 
-    const userData = await UserSchema.findOne({ email: email.trim().toLowerCase() });
+    if (!country_code || !mobile || !password) {
+      return res.status(400).json({
+        success: false,
+        message: "Country code, mobile number, and password are required",
+      });
+    }
+
+    console.log("Countryccccc", country_code, mobile)
+
+    const userData = await UserSchema.findOne({
+      country_code: country_code.trim(),
+      mobile: mobile.trim(),
+    });
+
     if (!userData) {
       return res.status(404).json({
-        message: "User not found with the given credentials",
+        message: "User not found with the given mobile number",
         success: false,
       });
     }
@@ -251,7 +264,7 @@ module.exports.loginUser = async (req, res) => {
     const isPasswordMatch = await bcrypt.compare(password, userData.password);
 
     if (!isPasswordMatch) {
-      return res.status(404).json({
+      return res.status(401).json({
         message: "Password does not match",
         success: false,
       });
@@ -259,17 +272,18 @@ module.exports.loginUser = async (req, res) => {
 
     const accessToken = await generateAccessToken(userData);
 
-    res.status(200).json({
+    return res.status(200).json({
       success: true,
-      message: "User login successfully",
-      accessToken: accessToken,
+      message: "User logged in successfully",
+      accessToken,
       data: userData,
     });
   } catch (error) {
-    return res.status(500).send({
+    console.error("Login error:", error);
+    return res.status(500).json({
       success: false,
-      error: error,
       message: "Internal Server Error",
+      error: error.message,
     });
   }
 };
