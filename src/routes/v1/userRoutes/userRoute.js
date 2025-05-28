@@ -3,7 +3,9 @@ const {
   loginUser,
   getRecentUsers,
   savePaymentHistory,
+  filterUsers,
   getPaymentHistory,
+  getUserById
 } = require("../../../controllers/AdminController/userController");
 const { authMiddleware } = require("../../../middlewares/tokenVerification");
 const {
@@ -26,6 +28,8 @@ userRoute.get("/messages/:conversationId", getAllMessages);
 userRoute.post("/messages", sendMessages);
 
 
+userRoute.get('/filter-users', filterUsers);
+userRoute.get('/user/:userId', getUserById);
 userRoute.post("/order", createNewOrder);
 userRoute.get("/status/:orderid", checkPaymentStatus);
 userRoute.get("/payment/history/:userId", getPaymentHistory);

@@ -6,6 +6,7 @@ const UserSchema = require("../../models/adminModel/UserSchema");
 const bcrypt = require("bcrypt");
 const crypto = require("crypto");
 const PaymentHistory = require("../../models/adminModel/PaymentHistory");
+const { calculateAge } = require("../../utils/commonUtils");
 
 module.exports.getUsers = async (req, res) => {
   try {
@@ -518,5 +519,45 @@ module.exports.getPaymentHistory = async (req, res) => {
   } catch (error) {
     console.error("Error fetching payment history:", error);
     return res.status(500).json({ success: false, message: "Internal server error" });
+  }
+};
+
+
+
+module.exports.filterUsers = async (req, res) => {
+  try {
+    const { gender, minAge, maxAge, city, caste, language } = req.query;
+
+    const filters = {};
+
+    if (gender && gender != "All") filters.gender = gender;
+    if (city) filters.city = city;
+    if (caste) filters.caste = caste;
+    let users = await UserSchema.find(filters);
+
+    if (minAge || maxAge) {
+      users = users?.filter((user) => {
+        if (!user.dob) return false;
+
+        const age = calculateAge(user.dob);
+        if (minAge && age < parseInt(minAge)) return false;
+        if (maxAge && age > parseInt(maxAge)) return false;
+        if (language && !user.languages?.includes(language)) return false;
+        return true;
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "Filtered users retrieved successfully",
+      total: users?.length,
+      data: users,
+    });
+  } catch (err) {
+    res.status(500).json({
+      success: false,
+      message: "Internal Server Error",
+      error: err.message,
+    });
   }
 };
