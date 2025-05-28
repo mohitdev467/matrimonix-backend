@@ -106,8 +106,8 @@ adminRoute.post(
 );
 adminRoute.get(
   "/caste",
-  authMiddleware,
-  authorizeRole(["admin"]),
+  // authMiddleware,
+  // authorizeRole(["admin"]),
   getAllCastes
 );
 adminRoute.put(
@@ -322,8 +322,8 @@ adminRoute.post(
 );
 adminRoute.get(
   "/language",
-  authMiddleware,
-  authorizeRole(["admin"]),
+  // authMiddleware,
+  // authorizeRole(["admin"]),
   getAllLanguages
 );
 adminRoute.put(

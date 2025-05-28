@@ -4,6 +4,8 @@ const {
   getRecentUsers,
   savePaymentHistory,
   getPaymentHistory,
+  filterUsers,
+  getUserById
 } = require("../../../controllers/AdminController/userController");
 const { authMiddleware } = require("../../../middlewares/tokenVerification");
 const {
@@ -30,6 +32,7 @@ userRoute.post("/order", createNewOrder);
 userRoute.get("/status/:orderid", checkPaymentStatus);
 userRoute.get("/payment/history/:userId", getPaymentHistory);
 userRoute.post('/video-call/token', generateVideoCallToken);
-
+userRoute.get('/filter-users', filterUsers);
+userRoute.get('/user/:userId', getUserById);
 
 module.exports = userRoute;

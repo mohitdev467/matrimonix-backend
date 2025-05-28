@@ -6,6 +6,7 @@ const UserSchema = require("../../models/adminModel/UserSchema");
 const bcrypt = require("bcrypt");
 const crypto = require("crypto");
 const PaymentHistory = require("../../models/adminModel/PaymentHistory");
+const { calculateAge } = require("../../utils/commonUtils");
 
 module.exports.getUsers = async (req, res) => {
   try {
@@ -20,9 +21,9 @@ module.exports.getUsers = async (req, res) => {
     };
 
     const users = await UserSchema.find(query)
-  .populate("subscription") 
-  .skip((page - 1) * limit)
-  .limit(parseInt(limit));
+      .populate("subscription")
+      .skip((page - 1) * limit)
+      .limit(parseInt(limit));
 
     const total = await UserSchema.countDocuments(query);
 
@@ -44,7 +45,6 @@ module.exports.getUsers = async (req, res) => {
     });
   }
 };
-
 
 module.exports.addUser = async (req, res) => {
   try {
@@ -86,7 +86,6 @@ module.exports.addUser = async (req, res) => {
       .json({ success: false, message: "Internal Server Error", error: err });
   }
 };
-
 
 module.exports.bulkAddUsers = async (req, res) => {
   try {
@@ -240,7 +239,9 @@ module.exports.loginUser = async (req, res) => {
   try {
     const { email, password } = req.body;
 
-    const userData = await UserSchema.findOne({ email: email.trim().toLowerCase() });
+    const userData = await UserSchema.findOne({
+      email: email.trim().toLowerCase(),
+    });
     if (!userData) {
       return res.status(404).json({
         message: "User not found with the given credentials",
@@ -296,7 +297,6 @@ module.exports.getRecentUsers = async (req, res) => {
   }
 };
 
-
 module.exports.getMatchesUsers = async (req, res) => {
   try {
     const { userId } = req.params;
@@ -327,16 +327,15 @@ module.exports.getMatchesUsers = async (req, res) => {
     const oppositeGender = gender === "male" ? "female" : "male";
 
     const matchedUsers = await UserSchema.find({
-      gender: { $regex: new RegExp(`^${oppositeGender}$`, "i") }, 
+      gender: { $regex: new RegExp(`^${oppositeGender}$`, "i") },
       isActive: true,
       _id: { $ne: loggedInUser._id },
-    }).select("-password -confirmPassword"); 
+    }).select("-password -confirmPassword");
 
     res.status(200).json({
       success: true,
       data: matchedUsers,
     });
-
   } catch (error) {
     console.error("Error in getMatchesUsers:", error);
     res.status(500).json({
@@ -345,8 +344,6 @@ module.exports.getMatchesUsers = async (req, res) => {
     });
   }
 };
-
-
 
 module.exports.handleShortlistUser = async (req, res) => {
   try {
@@ -487,22 +484,63 @@ module.exports.resetPassword = async (req, res) => {
   }
 };
 
-
 module.exports.getPaymentHistory = async (req, res) => {
   try {
     const { userId } = req.params;
     if (!mongoose.Types.ObjectId.isValid(userId)) {
-      return res.status(400).json({ success: false, message: "Invalid userId" });
+      return res
+        .status(400)
+        .json({ success: false, message: "Invalid userId" });
     }
 
     const payments = await PaymentHistory.find({ customer: userId })
-      .populate("customer") 
-      .populate("packages") 
+      .populate("customer")
+      .populate("packages")
       .sort({ timestamp: -1 });
 
     return res.json({ success: true, data: payments });
   } catch (error) {
     console.error("Error fetching payment history:", error);
-    return res.status(500).json({ success: false, message: "Internal server error" });
+    return res
+      .status(500)
+      .json({ success: false, message: "Internal server error" });
+  }
+};
+
+module.exports.filterUsers = async (req, res) => {
+  try {
+    const { gender, minAge, maxAge, city, caste, language } = req.query;
+
+    const filters = {};
+
+    if (gender && gender != "All") filters.gender = gender;
+    if (city) filters.city = city;
+    if (caste) filters.caste = caste;
+    let users = await UserSchema.find(filters);
+
+    if (minAge || maxAge) {
+      users = users?.filter((user) => {
+        if (!user.dob) return false;
+
+        const age = calculateAge(user.dob);
+        if (minAge && age < parseInt(minAge)) return false;
+        if (maxAge && age > parseInt(maxAge)) return false;
+        if (language && !user.languages?.includes(language)) return false;
+        return true;
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "Filtered users retrieved successfully",
+      total: users?.length,
+      data: users,
+    });
+  } catch (err) {
+    res.status(500).json({
+      success: false,
+      message: "Internal Server Error",
+      error: err.message,
+    });
   }
 };
