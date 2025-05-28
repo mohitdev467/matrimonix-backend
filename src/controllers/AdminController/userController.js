@@ -248,7 +248,6 @@ module.exports.loginUser = async (req, res) => {
       });
     }
 
-    console.log("Countryccccc", country_code, mobile)
 
     const userData = await UserSchema.findOne({
       country_code: country_code.trim(),
