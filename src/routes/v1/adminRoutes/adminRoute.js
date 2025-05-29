@@ -80,6 +80,8 @@ const {
 const uploadImage = require("../../../controllers/ImageController/ImageController");
 const { getAllPaymentHistory, deletePaymentHistory } = require("../../../controllers/PaymentController/PaymentController");
 const { createTestimonial, getAllTestimonials, getTestimonialById, updateTestimonial, deleteTestimonial } = require("../../../controllers/TestimonialController/TestimonialController");
+const { createCity, getCities, updateCity, deleteCity, seedCities } = require("../../../controllers/CitiesController/CitiesController");
+const { createState, getStates, updateState, deleteState, seedStates } = require("../../../controllers/StateController/StateController");
 
 const adminRoute = express.Router();
 
@@ -443,6 +445,24 @@ adminRoute.get('/testimonials', getAllTestimonials);
 adminRoute.get('/testimonials/:id', getTestimonialById);
 adminRoute.put('/testimonials/:id',authMiddleware,authorizeRole(["admin"]), updateTestimonial);
 adminRoute.delete('/testimonials/:id', authMiddleware,authorizeRole(["admin"]),deleteTestimonial);
+
+
+// Cities
+
+adminRoute.post('/cities',authMiddleware,authorizeRole(["admin"]), createCity);
+adminRoute.get('/cities', getCities);
+adminRoute.put('/cities/:id',authMiddleware,authorizeRole(["admin"]), updateCity);
+adminRoute.delete('/cities/:id',authMiddleware,authorizeRole(["admin"]), deleteCity);
+
+
+
+// Cities
+
+adminRoute.post('/states',authMiddleware,authorizeRole(["admin"]), createState);
+adminRoute.get('/states',authMiddleware,authorizeRole(["admin"]), getStates);
+adminRoute.put('/states/:id', updateState);
+adminRoute.delete('/states/:id', authMiddleware,authorizeRole(["admin"]),deleteState);
+
 
 
 
