@@ -32,10 +32,7 @@ const createLanguage = async (req, res) => {
 
 const getAllLanguages = async (req, res) => {
   try {
-    const { search, page = 1, pageSize = 10 } = req.query;
-    const pageNumber = parseInt(page);
-    const limitNumber = parseInt(pageSize);
-    const skip = (pageNumber - 1) * limitNumber;
+    const { search, page, pageSize } = req.query;
 
     const filter = search
       ? {
@@ -46,31 +43,48 @@ const getAllLanguages = async (req, res) => {
         }
       : {};
 
-    const totalCount = await Language.countDocuments(filter);
+    let languages;
+    let pagination = null;
 
-    const Languages = await Language.find(filter)
-      .select("language languageCode isActive")
-      .limit(limitNumber)
-      .skip(skip);
-    if (!Languages?.length) {
-      return res
-        .status(404)
-        .json({ success: false, message: "Language not found" });
-    }
-    res.status(200).json({
-      success: true,
-      data: Languages,
-      pagination: {
+    if (page && pageSize) {
+      const pageNumber = parseInt(page);
+      const limitNumber = parseInt(pageSize);
+      const skip = (pageNumber - 1) * limitNumber;
+
+      const totalCount = await Language.countDocuments(filter);
+
+      languages = await Language.find(filter)
+        .select("language languageCode isActive")
+        .limit(limitNumber)
+        .skip(skip);
+
+      pagination = {
         total: totalCount,
         page: pageNumber,
         pageSize: limitNumber,
         totalPages: Math.ceil(totalCount / limitNumber),
-      },
+      };
+    } else {
+      // Fetch all languages if no pagination provided
+      languages = await Language.find(filter).select("language languageCode isActive");
+    }
+
+    if (!languages?.length) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Language not found" });
+    }
+
+    res.status(200).json({
+      success: true,
+      data: languages,
+      ...(pagination && { pagination }),
     });
   } catch (err) {
-    res.status(500).json({ error: "Internal Server Error", error: err });
+    res.status(500).json({ error: "Internal Server Error", details: err });
   }
 };
+
 
 const updateLanguage = async (req, res) => {
   try {

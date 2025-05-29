@@ -32,10 +32,7 @@ const createOccupation = async (req, res) => {
 
 const getAllOccupations = async (req, res) => {
   try {
-    const { search, page = 1, pageSize = 10 } = req.query;
-    const pageNumber = parseInt(page);
-    const limitNumber = parseInt(pageSize);
-    const skip = (pageNumber - 1) * limitNumber;
+    const { search, page, pageSize } = req.query;
 
     const filter = search
       ? {
@@ -46,31 +43,48 @@ const getAllOccupations = async (req, res) => {
         }
       : {};
 
-    const totalCount = await Occupation.countDocuments(filter);
+    let occupations;
+    let pagination = null;
 
-    const Occupations = await Occupation.find(filter)
-      .select("occupation language isActive")
-      .limit(limitNumber)
-      .skip(skip);
-    if (!Occupations?.length) {
-      return res
-        .status(404)
-        .json({ success: false, message: "Occupation not found" });
-    }
-    res.status(200).json({
-      success: true,
-      data: Occupations,
-      pagination: {
+    if (page && pageSize) {
+      const pageNumber = parseInt(page);
+      const limitNumber = parseInt(pageSize);
+      const skip = (pageNumber - 1) * limitNumber;
+
+      const totalCount = await Occupation.countDocuments(filter);
+
+      occupations = await Occupation.find(filter)
+        .select("occupation language isActive")
+        .limit(limitNumber)
+        .skip(skip);
+
+      pagination = {
         total: totalCount,
         page: pageNumber,
         pageSize: limitNumber,
         totalPages: Math.ceil(totalCount / limitNumber),
-      },
+      };
+    } else {
+      // Return all occupations without pagination
+      occupations = await Occupation.find(filter).select("occupation language isActive");
+    }
+
+    if (!occupations?.length) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Occupation not found" });
+    }
+
+    res.status(200).json({
+      success: true,
+      data: occupations,
+      ...(pagination && { pagination }),
     });
   } catch (err) {
-    res.status(500).json({ error: "Internal Server Error", error: err });
+    res.status(500).json({ error: "Internal Server Error", details: err });
   }
 };
+
 
 const updateOccupation = async (req, res) => {
   try {

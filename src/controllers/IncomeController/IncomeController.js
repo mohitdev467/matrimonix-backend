@@ -32,10 +32,7 @@ const createIncome = async (req, res) => {
 
 const getAllIncomes = async (req, res) => {
   try {
-    const { search, page = 1, pageSize = 10 } = req.query;
-    const pageNumber = parseInt(page);
-    const limitNumber = parseInt(pageSize);
-    const skip = (pageNumber - 1) * limitNumber;
+    const { search, page, pageSize } = req.query;
 
     const filter = search
       ? {
@@ -46,31 +43,48 @@ const getAllIncomes = async (req, res) => {
         }
       : {};
 
-    const totalCount = await Income.countDocuments(filter);
+    let incomes;
+    let pagination = null;
 
-    const Incomes = await Income.find(filter)
-      .select("income language isActive")
-      .limit(limitNumber)
-      .skip(skip);
-    if (!Incomes?.length) {
-      return res
-        .status(404)
-        .json({ success: false, message: "Income not found" });
-    }
-    res.status(200).json({
-      success: true,
-      data: Incomes,
-      pagination: {
+    if (page && pageSize) {
+      const pageNumber = parseInt(page);
+      const limitNumber = parseInt(pageSize);
+      const skip = (pageNumber - 1) * limitNumber;
+
+      const totalCount = await Income.countDocuments(filter);
+
+      incomes = await Income.find(filter)
+        .select("income language isActive")
+        .limit(limitNumber)
+        .skip(skip);
+
+      pagination = {
         total: totalCount,
         page: pageNumber,
         pageSize: limitNumber,
         totalPages: Math.ceil(totalCount / limitNumber),
-      },
+      };
+    } else {
+      // Return all if pagination not provided
+      incomes = await Income.find(filter).select("income language isActive");
+    }
+
+    if (!incomes?.length) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Income not found" });
+    }
+
+    res.status(200).json({
+      success: true,
+      data: incomes,
+      ...(pagination && { pagination }),
     });
   } catch (err) {
-    res.status(500).json({ error: "Internal Server Error", error: err });
+    res.status(500).json({ error: "Internal Server Error", details: err });
   }
 };
+
 
 const updateIncome = async (req, res) => {
   try {

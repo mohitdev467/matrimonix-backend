@@ -2,10 +2,7 @@ const Category = require("../../models/adminModel/CategorySchema");
 
 module.exports.getCategories = async (req, res) => {
   try {
-    const { search, page = 1, pageSize = 10 } = req.query;
-    const pageNumber = parseInt(page);
-    const limitNumber = parseInt(pageSize);
-    const skip = (pageNumber - 1) * limitNumber;
+    const { search, page, pageSize } = req.query;
 
     const filter = search
       ? {
@@ -16,31 +13,46 @@ module.exports.getCategories = async (req, res) => {
         }
       : {};
 
-    const totalCount = await Category.countDocuments(filter);
+    let categories;
+    let pagination = null;
 
-    const categories = await Category.find(filter)
-      .select("cat_name image description isActive")
-      .limit(limitNumber)
-      .skip(skip);
-    if (!categories?.length) {
-      return res
-        .status(404)
-        .json({ success: false, message: "Category not found" });
-    }
-    res.status(200).json({
-      success: true,
-      data: categories,
-      pagination: {
+    if (page && pageSize) {
+      const pageNumber = parseInt(page);
+      const limitNumber = parseInt(pageSize);
+      const skip = (pageNumber - 1) * limitNumber;
+
+      const totalCount = await Category.countDocuments(filter);
+
+      categories = await Category.find(filter)
+        .select("cat_name image description isActive")
+        .limit(limitNumber)
+        .skip(skip);
+
+      pagination = {
         total: totalCount,
         page: pageNumber,
         pageSize: limitNumber,
         totalPages: Math.ceil(totalCount / limitNumber),
-      },
+      };
+    } else {
+      // Return all categories if no pagination
+      categories = await Category.find(filter).select("cat_name image description isActive");
+    }
+
+    if (!categories?.length) {
+      return res.status(404).json({ success: false, message: "Category not found" });
+    }
+
+    res.status(200).json({
+      success: true,
+      data: categories,
+      ...(pagination && { pagination }),
     });
   } catch (err) {
-    res.status(500).json({ error: "Internal Server Error", error: err });
+    res.status(500).json({ error: "Internal Server Error", details: err });
   }
 };
+
 
 // Get category by ID
 module.exports.getCategoryById = async (req, res) => {

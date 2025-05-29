@@ -28,10 +28,7 @@ const createCaste = async (req, res) => {
 
 const getAllCastes = async (req, res) => {
   try {
-    const { search, page = 1, pageSize = 10 } = req.query;
-    const pageNumber = parseInt(page);
-    const limitNumber = parseInt(pageSize);
-    const skip = (pageNumber - 1) * limitNumber;
+    const { search, page, pageSize } = req.query;
 
     const filter = search
       ? {
@@ -42,29 +39,45 @@ const getAllCastes = async (req, res) => {
         }
       : {};
 
-    const totalCount = await Caste.countDocuments(filter);
+    let castes;
+    let pagination = null;
 
-    const castes = await Caste.find(filter)
-      .select("caste language isActive")
-      .limit(limitNumber)
-      .skip(skip);
-    if (!castes?.length) {
-      return res
-        .status(404)
-        .json({ success: false, message: "Caste not found" });
-    }
-    res.status(200).json({
-      success: true,
-      data: castes,
-      pagination: {
+    if (page && pageSize) {
+      const pageNumber = parseInt(page);
+      const limitNumber = parseInt(pageSize);
+      const skip = (pageNumber - 1) * limitNumber;
+
+      const totalCount = await Caste.countDocuments(filter);
+      castes = await Caste.find(filter)
+        .select("caste language isActive")
+        .limit(limitNumber)
+        .skip(skip);
+
+      pagination = {
         total: totalCount,
         page: pageNumber,
         pageSize: limitNumber,
         totalPages: Math.ceil(totalCount / limitNumber),
-      },
+      };
+    } else {
+      // Return all castes without pagination
+      castes = await Caste.find(filter).select("caste language isActive");
+    }
+
+    if (!castes?.length) {
+      return res.status(404).json({
+        success: false,
+        message: "Caste not found",
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      data: castes,
+      ...(pagination && { pagination }),
     });
   } catch (err) {
-    res.status(500).json({ error: "Internal Server Error", error: err });
+    res.status(500).json({ error: "Internal Server Error", details: err });
   }
 };
 
