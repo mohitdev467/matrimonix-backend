@@ -34,6 +34,7 @@ const createPackages = async (req, res) => {
       language,
       subscriptionType,
       durationInDays,  
+      features
     } = req.body;
 
     if (!durationInDays || typeof durationInDays !== "number" || durationInDays <= 0) {
@@ -49,6 +50,7 @@ const createPackages = async (req, res) => {
       subscriptionType,
       durationInDays, 
       isActive: true,
+      features: features || [], 
     });
 
     await newPackage.save();

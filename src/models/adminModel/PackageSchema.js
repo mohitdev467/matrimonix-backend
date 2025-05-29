@@ -17,6 +17,7 @@ const PackageSchema = new mongoose.Schema(
       required: true, 
     },
     isActive: { type: Boolean, default: true },
+    features: { type: [String], required: false },
   },
   { timestamps: true }
 );

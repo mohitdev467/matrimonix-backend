@@ -78,8 +78,17 @@ const {
   deleteNews,
 } = require("../../../controllers/NewsController/NewsController");
 const uploadImage = require("../../../controllers/ImageController/ImageController");
-const { getAllPaymentHistory, deletePaymentHistory } = require("../../../controllers/PaymentController/PaymentController");
-const { createTestimonial, getAllTestimonials, getTestimonialById, updateTestimonial, deleteTestimonial } = require("../../../controllers/TestimonialController/TestimonialController");
+const {
+  getAllPaymentHistory,
+  deletePaymentHistory,
+} = require("../../../controllers/PaymentController/PaymentController");
+const {
+  createTestimonial,
+  getAllTestimonials,
+  getTestimonialById,
+  updateTestimonial,
+  deleteTestimonial,
+} = require("../../../controllers/TestimonialController/TestimonialController");
 
 const adminRoute = express.Router();
 
@@ -140,7 +149,7 @@ adminRoute.get(
 adminRoute.post("/add-user", userController.addUser);
 adminRoute.post("/add/bulk-user", userController.bulkAddUsers);
 
-adminRoute.get("/users/:userId",  userController.getUserById);
+adminRoute.get("/users/:userId", userController.getUserById);
 adminRoute.put(
   "/users/:userId/status",
   authMiddleware,
@@ -380,7 +389,11 @@ adminRoute.post(
   authorizeRole(["admin"]),
   createPackages
 );
-adminRoute.get("/packages", authMiddleware, getPackages);
+adminRoute.get(
+  "/packages",
+  //  authMiddleware,
+  getPackages
+);
 adminRoute.put(
   "/packages/:id",
   authMiddleware,
@@ -424,9 +437,13 @@ adminRoute.delete(
   deleteNews
 );
 
-
 // Payments History
-adminRoute.get("/payment/history", authMiddleware,authorizeRole(["admin"]), getAllPaymentHistory);
+adminRoute.get(
+  "/payment/history",
+  authMiddleware,
+  authorizeRole(["admin"]),
+  getAllPaymentHistory
+);
 adminRoute.delete(
   "/payment/history/:id",
   authMiddleware,
@@ -434,16 +451,22 @@ adminRoute.delete(
   deletePaymentHistory
 );
 
-
 // Testimonials
 
-
-adminRoute.post('/testimonials', createTestimonial);
-adminRoute.get('/testimonials', getAllTestimonials);
-adminRoute.get('/testimonials/:id', getTestimonialById);
-adminRoute.put('/testimonials/:id',authMiddleware,authorizeRole(["admin"]), updateTestimonial);
-adminRoute.delete('/testimonials/:id', authMiddleware,authorizeRole(["admin"]),deleteTestimonial);
-
-
+adminRoute.post("/testimonials", createTestimonial);
+adminRoute.get("/testimonials", getAllTestimonials);
+adminRoute.get("/testimonials/:id", getTestimonialById);
+adminRoute.put(
+  "/testimonials/:id",
+  authMiddleware,
+  authorizeRole(["admin"]),
+  updateTestimonial
+);
+adminRoute.delete(
+  "/testimonials/:id",
+  authMiddleware,
+  authorizeRole(["admin"]),
+  deleteTestimonial
+);
 
 module.exports = adminRoute;
