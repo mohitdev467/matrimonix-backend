@@ -466,8 +466,8 @@ adminRoute.delete('/cities/:id',authMiddleware,authorizeRole(["admin"]), deleteC
 // Cities
 
 adminRoute.post('/states',authMiddleware,authorizeRole(["admin"]), createState);
-adminRoute.get('/states',authMiddleware,authorizeRole(["admin"]), getStates);
-adminRoute.put('/states/:id', updateState);
+adminRoute.get('/states', getStates);
+adminRoute.put('/states/:id',authMiddleware,authorizeRole(["admin"]), updateState);
 adminRoute.delete('/states/:id', authMiddleware,authorizeRole(["admin"]),deleteState);
 
 
