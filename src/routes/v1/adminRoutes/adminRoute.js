@@ -80,7 +80,10 @@ const {
 const uploadImage = require("../../../controllers/ImageController/ImageController");
 const { getAllPaymentHistory, deletePaymentHistory } = require("../../../controllers/PaymentController/PaymentController");
 const { createTestimonial, getAllTestimonials, getTestimonialById, updateTestimonial, deleteTestimonial } = require("../../../controllers/TestimonialController/TestimonialController");
-
+const { createCity, getCities, updateCity, deleteCity, seedCities } = require("../../../controllers/CitiesController/CitiesController");
+const { createState, getStates, updateState, deleteState, seedStates } = require("../../../controllers/StateController/StateController");
+const { createSupportRequest, getAllSupportRequests, getSupportRequestById, updateSupportRequest, deleteSupportRequest, toggleSupportRequestStatus } = require("../../../controllers/SupportRequestController/SupportRequestController");
+const { addContactDetails, getContactDetails } = require("../../../controllers/ContactDetailsController/contactDetailsController")
 const adminRoute = express.Router();
 
 adminRoute.post("/create", createAdmin);
@@ -140,7 +143,7 @@ adminRoute.get(
 adminRoute.post("/add-user", userController.addUser);
 adminRoute.post("/add/bulk-user", userController.bulkAddUsers);
 
-adminRoute.get("/users/:userId",  userController.getUserById);
+adminRoute.get("/users/:userId", userController.getUserById);
 adminRoute.put(
   "/users/:userId/status",
   authMiddleware,
@@ -380,7 +383,11 @@ adminRoute.post(
   authorizeRole(["admin"]),
   createPackages
 );
-adminRoute.get("/packages", authMiddleware, getPackages);
+adminRoute.get(
+  "/packages",
+  //  authMiddleware,
+  getPackages
+);
 adminRoute.put(
   "/packages/:id",
   authMiddleware,
@@ -424,9 +431,13 @@ adminRoute.delete(
   deleteNews
 );
 
-
 // Payments History
-adminRoute.get("/payment/history", authMiddleware,authorizeRole(["admin"]), getAllPaymentHistory);
+adminRoute.get(
+  "/payment/history",
+  authMiddleware,
+  authorizeRole(["admin"]),
+  getAllPaymentHistory
+);
 adminRoute.delete(
   "/payment/history/:id",
   authMiddleware,
@@ -434,16 +445,71 @@ adminRoute.delete(
   deletePaymentHistory
 );
 
-
 // Testimonials
 
+adminRoute.post("/testimonials", createTestimonial);
+adminRoute.get("/testimonials", getAllTestimonials);
+adminRoute.get("/testimonials/:id", getTestimonialById);
+adminRoute.put(
+  "/testimonials/:id",
+  authMiddleware,
+  authorizeRole(["admin"]),
+  updateTestimonial
+);
+adminRoute.delete(
+  "/testimonials/:id",
+  authMiddleware,
+  authorizeRole(["admin"]),
+  deleteTestimonial
+);
 
-adminRoute.post('/testimonials', createTestimonial);
-adminRoute.get('/testimonials', getAllTestimonials);
-adminRoute.get('/testimonials/:id', getTestimonialById);
-adminRoute.put('/testimonials/:id',authMiddleware,authorizeRole(["admin"]), updateTestimonial);
-adminRoute.delete('/testimonials/:id', authMiddleware,authorizeRole(["admin"]),deleteTestimonial);
+// Cities
+
+adminRoute.post(
+  "/cities",
+  authMiddleware,
+  authorizeRole(["admin"]),
+  createCity
+);
+adminRoute.get("/cities", getCities);
+adminRoute.put(
+  "/cities/:id",
+  authMiddleware,
+  authorizeRole(["admin"]),
+  updateCity
+);
+adminRoute.delete(
+  "/cities/:id",
+  authMiddleware,
+  authorizeRole(["admin"]),
+  deleteCity
+);
+
+// Cities
+
+adminRoute.post('/states',authMiddleware,authorizeRole(["admin"]), createState);
+adminRoute.get('/states', getStates);
+adminRoute.put('/states/:id',authMiddleware,authorizeRole(["admin"]), updateState);
+adminRoute.delete('/states/:id', authMiddleware,authorizeRole(["admin"]),deleteState);
+
+
+// Support Request Schema
+
+adminRoute.post("/support-request", createSupportRequest);
+adminRoute.get("/support-request", authMiddleware,authorizeRole(["admin"]),getAllSupportRequests);
+adminRoute.get("/support-request/:id",authMiddleware,authorizeRole(["admin"]), getSupportRequestById);
+adminRoute.put("/support-request/:id", updateSupportRequest);
+adminRoute.delete("/support-request/:id",authMiddleware,authorizeRole(["admin"]), deleteSupportRequest);
 
 
 
+
+// conatctDetails
+adminRoute.post(
+  "/contact-details",
+  // authMiddleware,  
+  // authorizeRole(["admin"]),
+  addContactDetails
+);
+adminRoute.get("/contact-details", getContactDetails);
 module.exports = adminRoute;

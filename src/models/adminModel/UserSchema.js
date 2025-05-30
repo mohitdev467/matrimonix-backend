@@ -2,7 +2,7 @@ const mongoose = require("mongoose");
 const userSchema = new mongoose.Schema(
   {
     name: { type: String, required: false },
-    email: { type: String, required: true },
+    email: { type: String, required: false },
     country_code: { type: String, required: false },
     mobile: { type: String, required: false },
     gender: {
@@ -33,6 +33,8 @@ const userSchema = new mongoose.Schema(
     marital_status: { type: String, required: false, default: null },
     aadhaar: { type: String, required: false, default: null },
     dob: { type: String, required: false, default: null },
+    age: { type: String, required: false, default: null },
+
     birth_place: { type: String, required: false, default: null },
     birth_time: { type: String, required: false, default: null },
     manglik: { type: String, required: false, default: null },

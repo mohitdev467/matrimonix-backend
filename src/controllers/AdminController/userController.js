@@ -10,42 +10,63 @@ const { calculateAge } = require("../../utils/commonUtils");
 
 module.exports.getUsers = async (req, res) => {
   try {
-    const { page = 1, limit = 10, search = "" } = req.query;
+    const { search, page, pageSize } = req.query;
 
-    const query = {
-      $or: [
-        { name: { $regex: search, $options: "i" } },
-        { email: { $regex: search, $options: "i" } },
-        { mobile: { $regex: search, $options: "i" } },
-      ],
-    };
+    const filter = search
+      ? {
+          $or: [
+            { name: { $regex: search.trim(), $options: "i" } },
+            { email: { $regex: search.trim(), $options: "i" } },
+            { mobile: { $regex: search.trim(), $options: "i" } },
+          ],
+        }
+      : {};
 
-    const users = await UserSchema.find(query)
-  .populate("subscription") 
-  .skip((page - 1) * limit)
-  .limit(parseInt(limit));
+    let users;
+    let pagination = null;
 
-    const total = await UserSchema.countDocuments(query);
+    if (page && pageSize) {
+      const pageNumber = parseInt(page);
+      const limitNumber = parseInt(pageSize);
+      const skip = (pageNumber - 1) * limitNumber;
+
+      const total = await UserSchema.countDocuments(filter);
+
+      users = await UserSchema.find(filter)
+        .populate("subscription")
+        .skip(skip)
+        .limit(limitNumber);
+
+      pagination = {
+        total,
+        page: pageNumber,
+        pageSize: limitNumber,
+        totalPages: Math.ceil(total / limitNumber),
+      };
+    } else {
+      users = await UserSchema.find(filter).populate("subscription");
+    }
+
+    if (!users?.length) {
+      return res.status(404).json({
+        success: false,
+        message: "Users not found",
+      });
+    }
 
     res.status(200).json({
       success: true,
       data: users,
-      pagination: {
-        total: total,
-        page: parseInt(page),
-        pageSize: parseInt(limit),
-        totalPages: Math.ceil(total / limit),
-      },
+      ...(pagination && { pagination }),
     });
   } catch (error) {
-    res.status(400).json({
+    res.status(500).json({
       success: false,
-      message: "Error fetching users",
+      message: "Internal Server Error",
       error: error.message,
     });
   }
 };
-
 
 module.exports.addUser = async (req, res) => {
   try {
@@ -216,8 +237,14 @@ module.exports.getUserById = async (req, res) => {
 
 module.exports.updateUser = async (req, res) => {
   try {
+    const { userId } = req.params;
+
+    if (!userId || userId === 'undefined') {
+      return res.status(400).json({ success: false, error: "Invalid or missing user ID" });
+    }
+
     const updatedUser = await UserSchema.findByIdAndUpdate(
-      { _id: req.params.userId },
+      userId,                  // ✅ just pass string
       { ...req.body },
       { new: true }
     );
@@ -231,9 +258,11 @@ module.exports.updateUser = async (req, res) => {
       data: updatedUser,
     });
   } catch (err) {
-    res
-      .status(500)
-      .json({ success: false, error: "Internal Server Error", error: err });
+    res.status(500).json({
+      success: false,
+      error: "Internal Server Error",
+      details: err.message || err,
+    });
   }
 };
 
@@ -528,7 +557,6 @@ module.exports.getPaymentHistory = async (req, res) => {
 module.exports.filterUsers = async (req, res) => {
   try {
     const { gender, minAge, maxAge, city, caste, language } = req.query;
-
     const filters = {};
 
     if (gender && gender != "All") filters.gender = gender;
