@@ -237,8 +237,14 @@ module.exports.getUserById = async (req, res) => {
 
 module.exports.updateUser = async (req, res) => {
   try {
+    const { userId } = req.params;
+
+    if (!userId || userId === 'undefined') {
+      return res.status(400).json({ success: false, error: "Invalid or missing user ID" });
+    }
+
     const updatedUser = await UserSchema.findByIdAndUpdate(
-      { _id: req.params.userId },
+      userId,                  // ✅ just pass string
       { ...req.body },
       { new: true }
     );
@@ -252,9 +258,11 @@ module.exports.updateUser = async (req, res) => {
       data: updatedUser,
     });
   } catch (err) {
-    res
-      .status(500)
-      .json({ success: false, error: "Internal Server Error", error: err });
+    res.status(500).json({
+      success: false,
+      error: "Internal Server Error",
+      details: err.message || err,
+    });
   }
 };
 
