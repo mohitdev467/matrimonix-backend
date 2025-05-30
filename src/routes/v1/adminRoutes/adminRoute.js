@@ -82,6 +82,7 @@ const { getAllPaymentHistory, deletePaymentHistory } = require("../../../control
 const { createTestimonial, getAllTestimonials, getTestimonialById, updateTestimonial, deleteTestimonial } = require("../../../controllers/TestimonialController/TestimonialController");
 const { createCity, getCities, updateCity, deleteCity, seedCities } = require("../../../controllers/CitiesController/CitiesController");
 const { createState, getStates, updateState, deleteState, seedStates } = require("../../../controllers/StateController/StateController");
+const { createSupportRequest, getAllSupportRequests, getSupportRequestById, updateSupportRequest, deleteSupportRequest, toggleSupportRequestStatus } = require("../../../controllers/SupportRequestController/SupportRequestController");
 
 const adminRoute = express.Router();
 
@@ -469,6 +470,15 @@ adminRoute.post('/states',authMiddleware,authorizeRole(["admin"]), createState);
 adminRoute.get('/states', getStates);
 adminRoute.put('/states/:id',authMiddleware,authorizeRole(["admin"]), updateState);
 adminRoute.delete('/states/:id', authMiddleware,authorizeRole(["admin"]),deleteState);
+
+
+// Support Request Schema
+
+adminRoute.post("/support-request", createSupportRequest);
+adminRoute.get("/support-request", authMiddleware,authorizeRole(["admin"]),getAllSupportRequests);
+adminRoute.get("/support-request/:id",authMiddleware,authorizeRole(["admin"]), getSupportRequestById);
+adminRoute.put("/support-request/:id", updateSupportRequest);
+adminRoute.delete("/support-request/:id",authMiddleware,authorizeRole(["admin"]), deleteSupportRequest);
 
 
 
