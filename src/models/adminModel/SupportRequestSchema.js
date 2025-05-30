@@ -7,7 +7,7 @@ const SupportRequestSchema = new mongoose.Schema(
     subject: { type: String, required: false },
     scheduleMeeting: { type: String, required: false },
     yourMessage: { type: String, required: false },
-    status: {
+    requestStatus: {
       type: String,
       enum: ["pending", "approved", "rejected"],
       default: "pending",
