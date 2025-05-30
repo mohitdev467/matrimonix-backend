@@ -83,7 +83,7 @@ const { createTestimonial, getAllTestimonials, getTestimonialById, updateTestimo
 const { createCity, getCities, updateCity, deleteCity, seedCities } = require("../../../controllers/CitiesController/CitiesController");
 const { createState, getStates, updateState, deleteState, seedStates } = require("../../../controllers/StateController/StateController");
 const { createSupportRequest, getAllSupportRequests, getSupportRequestById, updateSupportRequest, deleteSupportRequest, toggleSupportRequestStatus } = require("../../../controllers/SupportRequestController/SupportRequestController");
-
+const { addContactDetails, getContactDetails } = require("../../../controllers/ContactDetailsController/contactDetailsController")
 const adminRoute = express.Router();
 
 adminRoute.post("/create", createAdmin);
