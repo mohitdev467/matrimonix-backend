@@ -1,13 +1,32 @@
 const mongoose = require("mongoose");
 
 const ChatSchema = new mongoose.Schema(
-  {
-    conversationId: {
+ {
+    senderId: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "Conversation",
+      ref: "User",
+      required: true,
     },
-    senderId: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
-    message: { type: String, required: true },
+    chat_type: {
+      type: String,
+      enum: ["permanent", "temporary"],
+      default: "permanent",
+    },
+    receiverId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
+    },
+    senderSocketId: String,
+    receiverSocketId: String,
+    messages: [
+      {
+        message: String,
+        dateTime: Date,
+        socketId: String,
+        userId: String,
+      },
+    ],
   },
   { timestamps: true }
 );
