@@ -83,7 +83,8 @@ const { createTestimonial, getAllTestimonials, getTestimonialById, updateTestimo
 const { createCity, getCities, updateCity, deleteCity, seedCities } = require("../../../controllers/CitiesController/CitiesController");
 const { createState, getStates, updateState, deleteState, seedStates } = require("../../../controllers/StateController/StateController");
 const { createSupportRequest, getAllSupportRequests, getSupportRequestById, updateSupportRequest, deleteSupportRequest, toggleSupportRequestStatus } = require("../../../controllers/SupportRequestController/SupportRequestController");
-const { addContactDetails, getContactDetails } = require("../../../controllers/ContactDetailsController/contactDetailsController")
+const { addContactDetails, getContactDetails } = require("../../../controllers/ContactDetailsController/contactDetailsController");
+const { createReligion, getAllReligions, updateReligion, toggleReligionStatus, deleteReligion } = require("../../../controllers/ReligionController/ReligionController");
 const adminRoute = express.Router();
 
 adminRoute.post("/create", createAdmin);
@@ -100,6 +101,39 @@ adminRoute.post(
   authorizeRole(["admin"]),
   updateAdminProfile
 );
+
+// Religion
+adminRoute.post(
+  "/religion",
+  authMiddleware,
+  authorizeRole(["admin"]),
+  createReligion
+);
+adminRoute.get(
+  "/religion",
+  // authMiddleware,
+  // authorizeRole(["admin"]),
+  getAllReligions
+);
+adminRoute.put(
+  "/religion/:id",
+  authMiddleware,
+  authorizeRole(["admin"]),
+  updateReligion
+);
+adminRoute.patch(
+  "/religion/:id/status",
+  authMiddleware,
+  authorizeRole(["admin"]),
+  toggleReligionStatus
+);
+adminRoute.delete(
+  "/religion/:id",
+  authMiddleware,
+  authorizeRole(["admin"]),
+  deleteReligion
+);
+
 
 // Caste Routes
 adminRoute.post(

@@ -15,7 +15,8 @@ module.exports.getUsers = async (req, res) => {
     const filter = search
       ? {
           $or: [
-            { name: { $regex: search.trim(), $options: "i" } },
+            { firstName: { $regex: search.trim(), $options: "i" } },
+            { lastName: { $regex: search.trim(), $options: "i" } },
             { email: { $regex: search.trim(), $options: "i" } },
             { mobile: { $regex: search.trim(), $options: "i" } },
           ],
@@ -452,7 +453,8 @@ module.exports.getShortlistedUsers = async (req, res) => {
       {
         $project: {
           _id: 1,
-          "userDetails.name": 1,
+          "userDetails.firstName": 1,
+          "userDetails.lastName": 1,
           "userDetails.email": 1,
           "userDetails.phone_no": 1,
           "userDetails.occupation": 1,
@@ -556,12 +558,14 @@ module.exports.getPaymentHistory = async (req, res) => {
 
 module.exports.filterUsers = async (req, res) => {
   try {
-    const { gender, minAge, maxAge, city, caste, language } = req.query;
+    const { gender, minAge, maxAge, city,religion, caste, language } = req.query;
     const filters = {};
 
     if (gender && gender != "All") filters.gender = gender;
     if (city) filters.city = city;
+    if (religion) filters.religion = religion;
     if (caste) filters.caste = caste;
+
     let users = await UserSchema.find(filters);
 
     if (minAge || maxAge) {

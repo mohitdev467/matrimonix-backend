@@ -1,23 +1,23 @@
-const Caste = require("../../models/adminModel/Caste");
+const Religion = require("../../models/adminModel/Religion");
 
-const createCaste = async (req, res) => {
+const createReligion = async (req, res) => {
   try {
-    const { religion,caste, language } = req.body;
+    const { religion, language } = req.body;
 
-    const existingCaste = await Caste.findOne({ caste });
-    if (existingCaste) {
+    const existingReligion = await Religion.findOne({ religion });
+    if (existingReligion) {
       return res.status(400).json({
         success: false,
-        message: "Caste already exists",
+        message: "Religion already exists",
       });
     }
-    const newCaste = new Caste({ religion,caste, language, isActive: true });
-    await newCaste.save();
+    const newReligion = new Religion({ religion, language, isActive: true });
+    await newReligion.save();
 
     res.status(201).json({
       success: true,
-      message: "Caste created successfully",
-      caste: newCaste,
+      message: "Religion created successfully",
+      religion: newReligion,
     });
   } catch (err) {
     res
@@ -26,21 +26,20 @@ const createCaste = async (req, res) => {
   }
 };
 
-const getAllCastes = async (req, res) => {
+const getAllReligions = async (req, res) => {
   try {
     const { search, page, pageSize } = req.query;
 
     const filter = search
       ? {
           $or: [
-            { religion: { $regex: search.trim(), $options: "i" } },
             { caste: { $regex: search.trim(), $options: "i" } },
             { language: { $regex: search.trim(), $options: "i" } },
           ],
         }
       : {};
 
-    let castes;
+    let religions;
     let pagination = null;
 
     if (page && pageSize) {
@@ -48,9 +47,9 @@ const getAllCastes = async (req, res) => {
       const limitNumber = parseInt(pageSize);
       const skip = (pageNumber - 1) * limitNumber;
 
-      const totalCount = await Caste.countDocuments(filter);
-      castes = await Caste.find(filter)
-        .select("religion caste language isActive")
+      const totalCount = await Religion.countDocuments(filter);
+      religions = await Religion.find(filter)
+        .select("religion language isActive")
         .limit(limitNumber)
         .skip(skip);
 
@@ -62,19 +61,19 @@ const getAllCastes = async (req, res) => {
       };
     } else {
       // Return all castes without pagination
-      castes = await Caste.find(filter).select("religion caste language isActive");
+      religions = await Religion.find(filter).select("religion language isActive");
     }
 
-    if (!castes?.length) {
+    if (!religions?.length) {
       return res.status(404).json({
         success: false,
-        message: "Caste not found",
+        message: "Religion not found",
       });
     }
 
     res.status(200).json({
       success: true,
-      data: castes,
+      data: religions,
       ...(pagination && { pagination }),
     });
   } catch (err) {
@@ -82,22 +81,22 @@ const getAllCastes = async (req, res) => {
   }
 };
 
-const updateCaste = async (req, res) => {
+const updateReligion = async (req, res) => {
   try {
-    const { religion, caste, language } = req.body;
-    const updatedCaste = await Caste.findByIdAndUpdate(
+    const { religion, language } = req.body;
+    const updatedReligion = await Religion.findByIdAndUpdate(
       req.params.id,
-      { religion, caste, language },
+      { religion, language },
       { new: true }
     );
 
-    if (!updatedCaste)
-      return res.status(404).json({ success: false, error: "Caste not found" });
+    if (!updatedReligion)
+      return res.status(404).json({ success: false, error: "Religion not found" });
 
     res.status(200).json({
       success: true,
-      message: "Caste updated successfully",
-      caste: updatedCaste,
+      message: "Religion updated successfully",
+      religion: updatedReligion,
     });
   } catch (err) {
     res
@@ -106,19 +105,19 @@ const updateCaste = async (req, res) => {
   }
 };
 
-const toggleCasteStatus = async (req, res) => {
+const toggleReligionStatus = async (req, res) => {
   try {
-    const caste = await Caste.findById(req.params.id);
-    if (!caste)
-      return res.status(404).json({ success: false, error: "Caste not found" });
+    const religion = await Religion.findById(req.params.id);
+    if (!religion)
+      return res.status(404).json({ success: false, error: "Religion not found" });
 
-    caste.isActive = !caste.isActive;
-    await caste.save();
+    religion.isActive = !religion.isActive;
+    await religion.save();
 
     res.status(200).json({
       success: true,
-      message: `Caste ${
-        caste.isActive ? "activated" : "deactivated"
+      message: `Religion ${
+        religion.isActive ? "activated" : "deactivated"
       } successfully`,
     });
   } catch (err) {
@@ -128,11 +127,11 @@ const toggleCasteStatus = async (req, res) => {
   }
 };
 
-const deleteCaste = async (req, res) => {
+const deleteReligion = async (req, res) => {
   try {
-    const deletedCaste = await Caste.findByIdAndDelete(req.params.id);
+    const deletedReligion = await Religion.findByIdAndDelete(req.params.id);
 
-    if (!deletedCaste) {
+    if (!deletedReligion) {
       return res
         .status(404)
         .json({ success: false, message: "Caste not found" });
@@ -140,7 +139,7 @@ const deleteCaste = async (req, res) => {
 
     res.status(200).json({
       success: true,
-      message: "Caste deleted successfully",
+      message: "Religion deleted successfully",
     });
   } catch (err) {
     res
@@ -150,9 +149,9 @@ const deleteCaste = async (req, res) => {
 };
 
 module.exports = {
-  createCaste,
-  getAllCastes,
-  updateCaste,
-  toggleCasteStatus,
-  deleteCaste,
+    createReligion,
+    getAllReligions,
+    updateReligion,
+    toggleReligionStatus,
+    deleteReligion,
 };
