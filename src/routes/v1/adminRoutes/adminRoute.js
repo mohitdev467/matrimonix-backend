@@ -294,8 +294,8 @@ adminRoute.post(
 );
 adminRoute.get(
   "/occupation",
-  authMiddleware,
-  authorizeRole(["admin"]),
+  // authMiddleware,
+  // authorizeRole(["admin"]),
   getAllOccupations
 );
 adminRoute.put(
