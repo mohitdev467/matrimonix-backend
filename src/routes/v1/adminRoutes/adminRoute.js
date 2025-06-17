@@ -85,6 +85,7 @@ const { createState, getStates, updateState, deleteState, seedStates } = require
 const { createSupportRequest, getAllSupportRequests, getSupportRequestById, updateSupportRequest, deleteSupportRequest, toggleSupportRequestStatus } = require("../../../controllers/SupportRequestController/SupportRequestController");
 const { addContactDetails, getContactDetails } = require("../../../controllers/ContactDetailsController/contactDetailsController");
 const { createReligion, getAllReligions, updateReligion, toggleReligionStatus, deleteReligion } = require("../../../controllers/ReligionController/ReligionController");
+const { createDeleteRequest, getAllDeleteRequests, getDeleteRequestById, updateDeleteRequest, deleteRequest } = require("../../../controllers/DeleteRequestController/DeleteRequestController");
 const adminRoute = express.Router();
 
 adminRoute.post("/create", createAdmin);
@@ -535,6 +536,14 @@ adminRoute.get("/support-request/:id",authMiddleware,authorizeRole(["admin"]), g
 adminRoute.put("/support-request/:id", updateSupportRequest);
 adminRoute.delete("/support-request/:id",authMiddleware,authorizeRole(["admin"]), deleteSupportRequest);
 
+
+// Delete Request Schema
+
+adminRoute.post("/delete-request", createDeleteRequest);
+adminRoute.get("/delete-request", authMiddleware,authorizeRole(["admin"]),getAllDeleteRequests);
+adminRoute.get("/delete-request/:id",authMiddleware,authorizeRole(["admin"]), getDeleteRequestById);
+adminRoute.put("/delete-request/:id", authMiddleware,authorizeRole(["admin"]),updateDeleteRequest);
+adminRoute.delete("/delete-request/:id",authMiddleware,authorizeRole(["admin"]), deleteRequest);
 
 
 
