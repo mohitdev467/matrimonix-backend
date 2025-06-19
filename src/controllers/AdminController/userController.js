@@ -122,47 +122,44 @@ module.exports.bulkAddUsers = async (req, res) => {
       });
     }
 
-    const createdUsers = [];
-    const skippedUsers = [];
+    const processedUsers = [];
 
     for (const userData of users) {
       const { email, password = "123456" } = userData;
 
-      const existingUser = await UserSchema.findOne({ email });
-      if (existingUser) {
-        skippedUsers.push({ email, reason: "User already exists" });
-        continue;
-      }
-
       const salt = await bcrypt.genSalt(10);
       const hashedPassword = await bcrypt.hash(password, salt);
 
-      const newUser = new UserSchema({
-        ...userData,
-        password: hashedPassword,
-        confirmPassword: hashedPassword, // optional: you might remove this field from schema entirely
-      });
-
-      await newUser.save();
+      const updatedUser = await UserSchema.findOneAndUpdate(
+        { email },
+        {
+          $set: {
+            ...userData,
+            password: hashedPassword,
+            confirmPassword: hashedPassword, // optional cleanup
+          },
+        },
+        { upsert: true, new: true, setDefaultsOnInsert: true }
+      );
 
       const accessToken = await generateAccessToken({
-        id: newUser._id,
-        email: newUser.email,
+        id: updatedUser._id,
+        email: updatedUser.email,
         role: "user",
       });
 
-      createdUsers.push({
-        _id: newUser._id,
-        email: newUser.email,
+      processedUsers.push({
+        _id: updatedUser._id,
+        email: updatedUser.email,
         accessToken,
+        status: updatedUser.createdAt === updatedUser.updatedAt ? 'created' : 'updated'
       });
     }
 
     res.status(201).json({
       success: true,
-      message: "Bulk user creation completed",
-      createdUsers,
-      skippedUsers,
+      message: "Bulk user processing completed (created or updated)",
+      users: processedUsers,
     });
   } catch (err) {
     console.error("Bulk add error:", err);
@@ -173,6 +170,7 @@ module.exports.bulkAddUsers = async (req, res) => {
     });
   }
 };
+
 
 // Change user status
 
