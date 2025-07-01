@@ -37,6 +37,8 @@ exports.createNewOrder = async (req, res) => {
       customer_name: customer_name,
     };
 
+    console.log("Customer details:", customerDetails);
+
 
     const orderId =
       (customer_id || bookingId || "ORID665456") +
@@ -67,6 +69,8 @@ exports.createNewOrder = async (req, res) => {
         },
       }
     );
+
+    console.log("Order creation response:", response.data);
 
 
     await PaymentHistory.create({
