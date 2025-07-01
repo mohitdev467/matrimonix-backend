@@ -47,8 +47,9 @@ exports.createNewOrder = async (req, res) => {
       {
         customer_details: customerDetails,
         order_meta: {
-          notify_url: "https://webhook.site/ec276d81-5a64-4639-9dd6-2bfc777ea19b",
-          payment_methods: "cc,dc,upi",
+          // notify_url: "https://webhook.site/ec276d81-5a64-4639-9dd6-2bfc777ea19b",
+          notify_url: "https://rishtaa.online/api/v1/payment/verify-payment",
+          payment_methods: "cc,dc,upi", 
         },
         order_amount: parseInt(amount) || 1,
         // order_amount:1,
@@ -75,9 +76,6 @@ exports.createNewOrder = async (req, res) => {
       paymentStatus: response?.data?.order_status,
       amount: parseFloat(amount),
     });
-
-
-    
     return res.status(200).send(response.data);
   } catch (error) {
     console.error("Error in creating order:",error.response?.data || error.message);
@@ -91,6 +89,7 @@ exports.createNewOrder = async (req, res) => {
 
 exports.checkPaymentStatus = async (req, res) => {
   const orderid = req.params.orderid;
+  console.log("Checking payment status for order ID:", orderid);
 
   try {
     const response = await axios.get(`${baseUrl}/${orderid}`, {
@@ -101,6 +100,8 @@ exports.checkPaymentStatus = async (req, res) => {
         "x-client-secret": secrect_key,
       },
     });
+
+    console.log("Payment status response:", response.data);
 
     const data = response.data;
     const orderAmount = parseFloat(data.order_amount);
@@ -158,7 +159,7 @@ exports.checkPaymentStatus = async (req, res) => {
       user.membershipDays = membershipDuration;
       await user.save();
 
-      const successUrl = `http://143.110.243.199/api/v1/success?order_status=${data.order_status}&order_id=${data.order_id}`;
+      const successUrl = `https://rishtaa.online/api/v1/success?order_status=${data.order_status}&order_id=${data.order_id}`;
       return res.status(200).json({ data: paymentRecord, message: userMessage, successUrl });
     } else {
       return res.status(400).json({ data: paymentRecord, message: userMessage });
