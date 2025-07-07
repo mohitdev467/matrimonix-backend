@@ -69,12 +69,7 @@ const getAllOccupations = async (req, res) => {
       occupations = await Occupation.find(filter).select("occupation language isActive");
     }
 
-    if (!occupations?.length) {
-      return res
-        .status(404)
-        .json({ success: false, message: "Occupation not found" });
-    }
-
+   
     res.status(200).json({
       success: true,
       data: occupations,

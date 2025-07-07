@@ -35,9 +35,7 @@ const getAllTestimonials = async (req, res) => {
       .skip(skip)
       .sort({ createdAt: -1 });
 
-    if (!testimonials.length) {
-      return res.status(404).json({ success: false, message: 'No testimonials found' });
-    }
+    
 
     res.status(200).json({
       success: true,

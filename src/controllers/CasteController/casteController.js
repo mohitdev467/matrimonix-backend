@@ -65,12 +65,7 @@ const getAllCastes = async (req, res) => {
       castes = await Caste.find(filter).select("religion caste language isActive");
     }
 
-    if (!castes?.length) {
-      return res.status(404).json({
-        success: false,
-        message: "Caste not found",
-      });
-    }
+    
 
     res.status(200).json({
       success: true,

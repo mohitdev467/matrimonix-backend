@@ -48,13 +48,6 @@ module.exports.getUsers = async (req, res) => {
       users = await UserSchema.find(filter).populate("subscription");
     }
 
-    if (!users?.length) {
-      return res.status(404).json({
-        success: false,
-        message: "Users not found",
-      });
-    }
-
     res.status(200).json({
       success: true,
       data: users,

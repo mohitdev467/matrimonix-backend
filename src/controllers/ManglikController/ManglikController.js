@@ -48,11 +48,7 @@ const getAllMangliks = async (req, res) => {
       .select("manglik language isActive")
       .limit(limitNumber)
       .skip(skip);
-    if (!mangliks?.length) {
-      return res
-        .status(404)
-        .json({ success: false, message: "Manglik not found" });
-    }
+    
     res.status(200).json({
       success: true,
       data: mangliks,

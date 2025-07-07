@@ -64,12 +64,7 @@ const getAllReligions = async (req, res) => {
       religions = await Religion.find(filter).select("religion language isActive");
     }
 
-    if (!religions?.length) {
-      return res.status(404).json({
-        success: false,
-        message: "Religion not found",
-      });
-    }
+   
 
     res.status(200).json({
       success: true,

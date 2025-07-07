@@ -69,12 +69,7 @@ const getAllIncomes = async (req, res) => {
       incomes = await Income.find(filter).select("income language isActive");
     }
 
-    if (!incomes?.length) {
-      return res
-        .status(404)
-        .json({ success: false, message: "Income not found" });
-    }
-
+   
     res.status(200).json({
       success: true,
       data: incomes,
