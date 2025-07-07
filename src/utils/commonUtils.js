@@ -18,4 +18,13 @@ function calculateAge(dobString) {
   return Math.abs(ageDate.getUTCFullYear() - 1970);
 }
 
-module.exports = { generateRandomId, calculateAge };
+
+
+function generateRandomEmail(index = 0, domain = "example.com") {
+  const randomStr = Math.random().toString(36).substring(2, 8);
+  const timestamp = Date.now();
+  return `user_${randomStr}_${timestamp}_${index}@${domain}`;
+}
+
+
+module.exports = { generateRandomId, calculateAge,generateRandomEmail };

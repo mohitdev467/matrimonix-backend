@@ -6,7 +6,7 @@ const UserSchema = require("../../models/adminModel/UserSchema");
 const bcrypt = require("bcrypt");
 const crypto = require("crypto");
 const PaymentHistory = require("../../models/adminModel/PaymentHistory");
-const { calculateAge } = require("../../utils/commonUtils");
+const { calculateAge, generateRandomEmail } = require("../../utils/commonUtils");
 
 module.exports.getUsers = async (req, res) => {
   try {
@@ -122,43 +122,44 @@ module.exports.bulkAddUsers = async (req, res) => {
       });
     }
 
-    const processedUsers = [];
+    const newUsers = [];
 
-    for (const userData of users) {
-      const { email, password = "123456" } = userData;
+    for (let i = 0; i < users.length; i++) {
+      const userData = users[i];
+      let { email, password = "123456" } = userData;
+
+      if (
+        !email ||
+        typeof email !== "string" ||
+        ["na", "n/a"].includes(email.trim().toLowerCase())
+      ) {
+        email = generateRandomEmail(i);
+      }
 
       const salt = await bcrypt.genSalt(10);
       const hashedPassword = await bcrypt.hash(password, salt);
 
-      const updatedUser = await UserSchema.findOneAndUpdate(
-        { email },
-        {
-          $set: {
-            ...userData,
-            password: hashedPassword,
-            confirmPassword: hashedPassword, // optional cleanup
-          },
-        },
-        { upsert: true, new: true, setDefaultsOnInsert: true }
-      );
-
-      const accessToken = await generateAccessToken({
-        id: updatedUser._id,
-        email: updatedUser.email,
-        role: "user",
-      });
-
-      processedUsers.push({
-        _id: updatedUser._id,
-        email: updatedUser.email,
-        accessToken,
-        status: updatedUser.createdAt === updatedUser.updatedAt ? 'created' : 'updated'
+      newUsers.push({
+        ...userData,
+        email,
+        password: hashedPassword,
+        confirmPassword: hashedPassword,
       });
     }
 
+    const insertedUsers = await UserSchema.insertMany(newUsers, {
+      ordered: false,
+    });
+
+    const processedUsers = insertedUsers.map((user) => ({
+      _id: user._id,
+      email: user.email,
+      status: "created",
+    }));
+
     res.status(201).json({
       success: true,
-      message: "Bulk user processing completed (created or updated)",
+      message: "Bulk users inserted",
       users: processedUsers,
     });
   } catch (err) {
@@ -170,6 +171,8 @@ module.exports.bulkAddUsers = async (req, res) => {
     });
   }
 };
+
+
 
 
 // Change user status
@@ -197,23 +200,27 @@ module.exports.deleteUser = async (req, res) => {
 
 module.exports.changeUserStatus = async (req, res) => {
   try {
-    const User = await UserSchema.findById(req.params.id);
-    if (!User)
+
+
+    const user = await UserSchema.findById(req.params.userId);
+
+    if (!user)
       return res.status(404).json({ success: false, error: "User not found" });
 
-    User.isActive = !User.isActive;
-    await User.save();
+    user.isActive = !user.isActive;
+    await user.save();
 
     res.status(200).json({
       success: true,
-      message: `User ${
-        User.isActive ? "activated" : "deactivated"
-      } successfully`,
+      message: `User ${user.isActive ? "activated" : "deactivated"} successfully`,
     });
   } catch (err) {
-    res
-      .status(500)
-      .json({ success: false, error: "Internal Server Error", error: err });
+    console.error("Change user status error:", err);
+    res.status(500).json({
+      success: false,
+      error: "Internal Server Error",
+      details: err.message,
+    });
   }
 };
 

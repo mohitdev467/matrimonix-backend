@@ -179,7 +179,7 @@ adminRoute.post("/add-user", userController.addUser);
 adminRoute.post("/add/bulk-user", userController.bulkAddUsers);
 
 adminRoute.get("/users/:userId", userController.getUserById);
-adminRoute.put(
+adminRoute.patch(
   "/users/:userId/status",
   authMiddleware,
   userController.changeUserStatus
