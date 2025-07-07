@@ -1,105 +1,19 @@
 const axios = require("axios");
 const PaymentHistory = require("../../models/adminModel/PaymentHistory.js");
-const { generateRandomId } = require("../../utils/commonUtils.js");
 const UserSchema = require("../../models/adminModel/UserSchema.js");
 const PackageSchema = require("../../models/adminModel/PackageSchema.js");
 const dotenv = require("../../config/dotenv.js");
 const { Cashfree, CFEnvironment } = require("cashfree-pg");
-// 
-
 dotenv();
 
 
 const baseUrl = process.env.CASHFREE_BASE_URL;
-const app_id =process.env.CASHFREE_API_KEY
+const app_id = process.env.CASHFREE_API_KEY
 const secrect_key = process.env.CASHFREE_SECRET_KEY
 
 const cashfree = new Cashfree(CFEnvironment.SANDBOX, app_id, secrect_key);
 
-
-
-// Create new payment order
-// exports.createNewOrder = async (req, res) => {
-//   const {
-//     customer_name,
-//     customer_email,
-//     customer_phone,
-//     bookingObjectId,
-//     bookingId,
-//     customer_uid,
-//     amount,
-//     customer_id,
-//   } = req.body;
-
-  
-//   try {
-//     const customerDetails = {
-//       customer_id:
-//         customer_id || bookingObjectId || (await generateRandomId()).toString(),
-//       customer_email: customer_email,
-//       customer_phone: customer_phone,
-//       customer_name: customer_name,
-//     };
-
-//     console.log("Customer details:", customerDetails);
-
-
-//     const orderId =
-//       (customer_id || bookingId || "ORID665456") +
-//       (await generateRandomId()).toString();
-
-//       console.log("Generated order ID:", orderId);
-
-//     const response = await axios.post(
-//       baseUrl,
-//       {
-//         customer_details: customerDetails,
-//         order_meta: {
-//           // notify_url: "https://webhook.site/ec276d81-5a64-4639-9dd6-2bfc777ea19b",
-//           notify_url: "https://rishtaa.online/api/v1/payment/verify-payment",
-//           payment_methods: "cc,dc,upi", 
-//         },
-//         order_amount: parseInt(amount) || 1,
-//         // order_amount:1,
-//         order_id: orderId,
-//         order_currency: "INR",
-//         order_note: "This is my first Order",
-//       },
-//       {
-//         headers: {
-//           Accept: "application/json",
-//           "x-api-version": "2022-09-01",
-//           "Content-Type": "application/json",
-//           "x-client-id": app_id,
-//           "x-client-secret": secrect_key,
-//         },
-//       }
-//     );
-
-//     console.log("Order creation response:", response.data);
-
-
-//     await PaymentHistory.create({
-//       userId: customer_id || null,
-//       orderId: response.data.order_id,
-//       sessionId: response.data.payment_session_id,
-//       paymentStatus: response?.data?.order_status,
-//       amount: parseFloat(amount),
-//     });
-//     return res.status(200).send(response.data);
-//   } catch (error) {
-//     console.error("Error in creating order:",error.response?.data || error.message);
-    
-//     return res.status(error.response?.status || 500).send({
-//       message: error.response?.data?.message || error.message,
-//       success: false,
-//     });
-//   }
-// };
-
-
  exports.createNewOrder = async(req,res) =>  {
-  console.log("Creating new order...",req.body);
   const { customer_name, customer_email, customer_phone, amount, customer_id } = req.body;
   const request = {
     order_amount: amount,
@@ -114,22 +28,16 @@ const cashfree = new Cashfree(CFEnvironment.SANDBOX, app_id, secrect_key);
       return_url: "https://rishtaa.online?order_id={order_id}",
     },
   };
-  console.log("Creating order with request:", request);
   try {
     const response = await cashfree.PGCreateOrder(request);
-    console.log("Order creation response:", response.data);
     return res.status(200).send(response.data);
   } catch (error) {
     console.error("Order creation failed:", error.response.data);
     throw error;
   }
 }
-
-
 exports.checkPaymentStatus = async (req, res) => {
   const orderid = req.params.orderid;
-  console.log("Checking payment status for order ID:", orderid);
-
   try {
     const response = await axios.get(`${baseUrl}/${orderid}`, {
       headers: {
@@ -139,26 +47,19 @@ exports.checkPaymentStatus = async (req, res) => {
         "x-client-secret": secrect_key,
       },
     });
-
-    console.log("Payment status response:", response.data);
-
     const data = response.data;
     const orderAmount = parseFloat(data.order_amount);
     const customerId = data?.customer_details?.customer_id;
-
     const user = await UserSchema.findById(customerId);
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
-
     const pkg = await PackageSchema.findOne({ price: orderAmount });
     if (!pkg) {
       return res.status(404).json({ message: "Package not found for the given amount" });
     }
-
     let internalStatus;
     let userMessage;
-
     switch (data.order_status) {
       case "PAID":
         internalStatus = "SUCCESS";
@@ -176,7 +77,6 @@ exports.checkPaymentStatus = async (req, res) => {
         internalStatus = "UNKNOWN";
         userMessage = "Unknown payment status received.";
     }
-
     // Save or update payment record
     const paymentRecord = await PaymentHistory.findOneAndUpdate(
       { orderId: data.order_id },
@@ -190,14 +90,11 @@ exports.checkPaymentStatus = async (req, res) => {
       },
       { new: true, upsert: true }
     ).populate("customer").populate("packages");
-
-
     if (internalStatus === "SUCCESS") {
-      const membershipDuration = pkg?.durationInDays || 30; 
+      const membershipDuration = pkg?.durationInDays || 30;
       user.membershipStatus = "active";
       user.membershipDays = membershipDuration;
       await user.save();
-
       const successUrl = `https://rishtaa.online/api/v1/success?order_status=${data.order_status}&order_id=${data.order_id}`;
       return res.status(200).json({ data: paymentRecord, message: userMessage, successUrl });
     } else {
@@ -211,34 +108,25 @@ exports.checkPaymentStatus = async (req, res) => {
     });
   }
 };
-
-
 exports.getAllPaymentHistory = async (req, res) => {
   try {
     const { page = 1, limit = 10, search = "" } = req.query;
-
     const query = {};
-
     if (search) {
       const searchRegex = new RegExp(search, "i");
-
       const isAmount = !isNaN(search);
-
       query.$or = [
         { status: { $regex: searchRegex } },
         ...(isAmount ? [{ amount: parseFloat(search) }] : []),
       ];
     }
-
     const payments = await PaymentHistory.find(query)
       .populate("customer")
       .populate("packages")
       .limit(parseInt(limit))
       .skip((parseInt(page) - 1) * parseInt(limit))
       .sort({ timestamp: -1 });
-
     const total = await PaymentHistory.countDocuments(query);
-
     res.status(200).json({
       success: true,
       data: payments,
@@ -252,23 +140,16 @@ exports.getAllPaymentHistory = async (req, res) => {
     });
   }
 };
-
-
-
 exports.deletePaymentHistory = async (req, res) => {
   try {
     const { id } = req.params;
-
-
     const deletedHistory = await PaymentHistory.findByIdAndDelete(id);
-
     if (!deletedHistory) {
       return res.status(404).json({
         success: false,
         message: "Payment history not found",
       });
     }
-
     res.status(200).json({
       success: true,
       message: "Payment history deleted successfully",
@@ -280,27 +161,20 @@ exports.deletePaymentHistory = async (req, res) => {
     });
   }
 };
-
-
-
 exports.deleteUserPaymentHistory = async (req, res) => {
   try {
     const { userId, paymentId } = req.params;
-
     const paymentHistory = await PaymentHistory.findOne({
       _id: paymentId,
-      customer: userId, 
+      customer: userId,
     });
-
     if (!paymentHistory) {
       return res.status(404).json({
         success: false,
         message: "Payment history not found for this user",
       });
     }
-
     await PaymentHistory.findByIdAndDelete(paymentId);
-
     res.status(200).json({
       success: true,
       message: "Payment history deleted successfully",
@@ -312,5 +186,4 @@ exports.deleteUserPaymentHistory = async (req, res) => {
       message: "Failed to delete payment history",
     });
   }
-};
-
+}
