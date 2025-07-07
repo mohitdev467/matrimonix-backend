@@ -4,7 +4,8 @@ const { generateRandomId } = require("../../utils/commonUtils.js");
 const UserSchema = require("../../models/adminModel/UserSchema.js");
 const PackageSchema = require("../../models/adminModel/PackageSchema.js");
 const dotenv = require("../../config/dotenv.js");
-
+const { Cashfree, CFEnvironment } = require("cashfree-pg");
+// 
 
 dotenv();
 
@@ -13,84 +14,121 @@ const baseUrl = process.env.CASHFREE_BASE_URL;
 const app_id =process.env.CASHFREE_API_KEY
 const secrect_key = process.env.CASHFREE_SECRET_KEY
 
+const cashfree = new Cashfree(CFEnvironment.SANDBOX, app_id, secrect_key);
+
+
 
 // Create new payment order
-exports.createNewOrder = async (req, res) => {
-  const {
-    customer_name,
-    customer_email,
-    customer_phone,
-    bookingObjectId,
-    bookingId,
-    customer_uid,
-    amount,
-    customer_id,
-  } = req.body;
+// exports.createNewOrder = async (req, res) => {
+//   const {
+//     customer_name,
+//     customer_email,
+//     customer_phone,
+//     bookingObjectId,
+//     bookingId,
+//     customer_uid,
+//     amount,
+//     customer_id,
+//   } = req.body;
 
   
-  try {
-    const customerDetails = {
-      customer_id:
-        customer_id || bookingObjectId || (await generateRandomId()).toString(),
-      customer_email: customer_email,
-      customer_phone: customer_phone,
-      customer_name: customer_name,
-    };
+//   try {
+//     const customerDetails = {
+//       customer_id:
+//         customer_id || bookingObjectId || (await generateRandomId()).toString(),
+//       customer_email: customer_email,
+//       customer_phone: customer_phone,
+//       customer_name: customer_name,
+//     };
+
+//     console.log("Customer details:", customerDetails);
 
 
-    const orderId =
-      (customer_id || bookingId || "ORID665456") +
-      (await generateRandomId()).toString();
+//     const orderId =
+//       (customer_id || bookingId || "ORID665456") +
+//       (await generateRandomId()).toString();
 
-    const response = await axios.post(
-      baseUrl,
-      {
-        customer_details: customerDetails,
-        order_meta: {
-          notify_url: "https://webhook.site/ec276d81-5a64-4639-9dd6-2bfc777ea19b",
-          payment_methods: "cc,dc,upi",
-        },
-        order_amount: parseInt(amount) || 1,
-        // order_amount:1,
-        order_id: orderId,
-        order_currency: "INR",
-        order_note: "This is my first Order",
-      },
-      {
-        headers: {
-          Accept: "application/json",
-          "x-api-version": "2022-09-01",
-          "Content-Type": "application/json",
-          "x-client-id": app_id,
-          "x-client-secret": secrect_key,
-        },
-      }
-    );
+//       console.log("Generated order ID:", orderId);
 
+//     const response = await axios.post(
+//       baseUrl,
+//       {
+//         customer_details: customerDetails,
+//         order_meta: {
+//           // notify_url: "https://webhook.site/ec276d81-5a64-4639-9dd6-2bfc777ea19b",
+//           notify_url: "https://rishtaa.online/api/v1/payment/verify-payment",
+//           payment_methods: "cc,dc,upi", 
+//         },
+//         order_amount: parseInt(amount) || 1,
+//         // order_amount:1,
+//         order_id: orderId,
+//         order_currency: "INR",
+//         order_note: "This is my first Order",
+//       },
+//       {
+//         headers: {
+//           Accept: "application/json",
+//           "x-api-version": "2022-09-01",
+//           "Content-Type": "application/json",
+//           "x-client-id": app_id,
+//           "x-client-secret": secrect_key,
+//         },
+//       }
+//     );
 
-    await PaymentHistory.create({
-      userId: customer_id || null,
-      orderId: response.data.order_id,
-      sessionId: response.data.payment_session_id,
-      paymentStatus: response?.data?.order_status,
-      amount: parseFloat(amount),
-    });
+//     console.log("Order creation response:", response.data);
 
 
+//     await PaymentHistory.create({
+//       userId: customer_id || null,
+//       orderId: response.data.order_id,
+//       sessionId: response.data.payment_session_id,
+//       paymentStatus: response?.data?.order_status,
+//       amount: parseFloat(amount),
+//     });
+//     return res.status(200).send(response.data);
+//   } catch (error) {
+//     console.error("Error in creating order:",error.response?.data || error.message);
     
+//     return res.status(error.response?.status || 500).send({
+//       message: error.response?.data?.message || error.message,
+//       success: false,
+//     });
+//   }
+// };
+
+
+ exports.createNewOrder = async(req,res) =>  {
+  console.log("Creating new order...",req.body);
+  const { customer_name, customer_email, customer_phone, amount, customer_id } = req.body;
+  const request = {
+    order_amount: amount,
+    order_currency: "INR",
+    customer_details: {
+      customer_id: customer_id,
+      customer_name:customer_name,
+      customer_email:customer_email,
+      customer_phone: customer_phone
+    },
+    order_meta: {
+      return_url: "https://rishtaa.online?order_id={order_id}",
+    },
+  };
+  console.log("Creating order with request:", request);
+  try {
+    const response = await cashfree.PGCreateOrder(request);
+    console.log("Order creation response:", response.data);
     return res.status(200).send(response.data);
   } catch (error) {
-    console.error("Error in creating order:",error.response?.data || error.message);
-    return res.status(error.response?.status || 500).send({
-      message: error.response?.data?.message || error.message,
-      success: false,
-    });
+    console.error("Order creation failed:", error.response.data);
+    throw error;
   }
-};
+}
 
 
 exports.checkPaymentStatus = async (req, res) => {
   const orderid = req.params.orderid;
+  console.log("Checking payment status for order ID:", orderid);
 
   try {
     const response = await axios.get(`${baseUrl}/${orderid}`, {
@@ -101,6 +139,8 @@ exports.checkPaymentStatus = async (req, res) => {
         "x-client-secret": secrect_key,
       },
     });
+
+    console.log("Payment status response:", response.data);
 
     const data = response.data;
     const orderAmount = parseFloat(data.order_amount);
@@ -158,7 +198,7 @@ exports.checkPaymentStatus = async (req, res) => {
       user.membershipDays = membershipDuration;
       await user.save();
 
-      const successUrl = `http://143.110.243.199/api/v1/success?order_status=${data.order_status}&order_id=${data.order_id}`;
+      const successUrl = `https://rishtaa.online/api/v1/success?order_status=${data.order_status}&order_id=${data.order_id}`;
       return res.status(200).json({ data: paymentRecord, message: userMessage, successUrl });
     } else {
       return res.status(400).json({ data: paymentRecord, message: userMessage });
