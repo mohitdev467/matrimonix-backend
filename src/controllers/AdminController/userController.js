@@ -556,17 +556,28 @@ module.exports.getPaymentHistory = async (req, res) => {
 
 module.exports.filterUsers = async (req, res) => {
   try {
-    const { gender, minAge, maxAge, city,religion, caste, language } = req.query;
+    const {
+      gender,
+      minAge,
+      maxAge,
+      city,
+      religion,
+      caste,
+      language,
+      page = 1,
+      pageSize = 12
+    } = req.query;
+
     const filters = {};
 
-    if (gender && gender != "All") filters.gender = gender;
+    if (gender && gender !== "All") filters.gender = gender;
     if (city) filters.city = city;
     if (religion) filters.religion = religion;
     if (caste) filters.caste = caste;
 
     let users = await UserSchema.find(filters);
 
-    if (minAge || maxAge) {
+    if (minAge || maxAge || language) {
       users = users?.filter((user) => {
         if (!user.dob) return false;
 
@@ -578,11 +589,23 @@ module.exports.filterUsers = async (req, res) => {
       });
     }
 
+    const totalUsers = users?.length;
+    const currentPage = parseInt(page);
+    const limit = parseInt(pageSize);
+    const totalPages = Math.ceil(totalUsers / limit);
+    const startIndex = (currentPage - 1) * limit;
+    const endIndex = currentPage * limit;
+
+    const paginatedUsers = users?.slice(startIndex, endIndex);
+
     res.status(200).json({
       success: true,
       message: "Filtered users retrieved successfully",
-      total: users?.length,
-      data: users,
+      totalUsers,
+      totalPages,
+      currentPage,
+      pageSize: limit,
+      data: paginatedUsers,
     });
   } catch (err) {
     res.status(500).json({

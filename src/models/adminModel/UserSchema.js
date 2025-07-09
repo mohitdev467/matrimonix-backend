@@ -14,7 +14,7 @@ const userSchema = new mongoose.Schema(
     confirmPassword: { type: String, required: false },
     blood_group: { type: String, required: false, default: null },
     religion: { type: String, required: false, default: null },
-    caste: { type: String, required: false, default: null },
+    caste: { type: [String], required: false, default: null },
     weight: { type: String, required: false, default: null },
     about_me: { type: String, required: false, default: null },
     body_type: { type: String, required: false, default: null },
