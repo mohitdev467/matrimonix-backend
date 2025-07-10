@@ -2,7 +2,6 @@ const express = require("express");
 const {
   loginUser,
   getRecentUsers,
-  savePaymentHistory,
   filterUsers,
   getPaymentHistory,
   getUserById
@@ -15,7 +14,6 @@ const {
 } = require("../../../controllers/MessageController/MessageController");
 const { createNewOrder, checkPaymentStatus, deleteUserPaymentHistory } = require("../../../controllers/PaymentController/PaymentController");
 const { generateVideoCallToken } = require("../../../controllers/videoCallController/videoCallController");
-const { getAuthUrl, handleOAuthCallback, createMeet } = require("../../../controllers/MeetController/MeetController");
 
 const userRoute = express.Router();
 
@@ -38,9 +36,7 @@ userRoute.delete("/payment/history/:userId/:paymentId", deleteUserPaymentHistory
 
 userRoute.post('/video-call/token', generateVideoCallToken);
 
-userRoute.get('/auth-url', getAuthUrl);
-userRoute.get('/callback', handleOAuthCallback);
-userRoute.post('/create-meet', createMeet);
+
 
 
 module.exports = userRoute;
